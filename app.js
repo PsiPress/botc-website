@@ -153,9 +153,17 @@ async function init() {
       state.localGames = [];
     }
     rebuild();
+    applyRuntimeMode();
   } catch (error) {
     document.body.innerHTML = `<main class="empty-state">Unable to load game data. Run <code>node server.mjs</code> from this folder, then open the site again.</main>`;
     console.error(error);
+  }
+}
+
+function applyRuntimeMode() {
+  document.body.classList.toggle("is-readonly", !state.databaseAvailable);
+  if (!state.databaseAvailable) {
+    els.eggButton.hidden = true;
   }
 }
 
@@ -691,7 +699,8 @@ function openGameDialog(gameId) {
 
   els.gameDialogName.textContent = `${game.date} ${game.script || "Game"}`;
   els.gameDialogContent.innerHTML = renderGameDialogContent(game);
-  els.gameDialogContent.querySelector("[data-delete-game-detail]").addEventListener("click", () => openDeleteDialog(game.id));
+  const deleteButton = els.gameDialogContent.querySelector("[data-delete-game-detail]");
+  if (deleteButton) deleteButton.addEventListener("click", () => openDeleteDialog(game.id));
   els.gameDialog.showModal();
 }
 
@@ -756,9 +765,11 @@ function renderGameDialogContent(game) {
       </div>
     </section>
 
-    <div class="game-dialog-actions">
-      <button class="danger-button" data-delete-game-detail="${escapeHtml(game.id)}" type="button">Delete game</button>
-    </div>
+    ${state.databaseAvailable ? `
+      <div class="game-dialog-actions">
+        <button class="danger-button" data-delete-game-detail="${escapeHtml(game.id)}" type="button">Delete game</button>
+      </div>
+    ` : ""}
   `;
 }
 

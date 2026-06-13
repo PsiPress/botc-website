@@ -25,6 +25,14 @@ http://127.0.0.1:5173/
 
 Do not use `python3 -m http.server` for normal operation. The browser can render that way, but new game entries will not be durable because the `/api/*` routes will be missing.
 
+## GitHub Pages
+
+This repo now includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, and the two CSV files. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
+
+The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to the Record CSV, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
+
+To enable Pages in GitHub: Settings -> Pages -> Build and deployment -> Source: GitHub Actions. Expected URL is `https://psipress.github.io/botc-website/`.
+
 ## Data Storage
 
 Durable app data is stored in SQLite:
@@ -54,6 +62,7 @@ The passcode cannot be changed from the website. To change it, edit `DEFAULT_PAS
 - `app.js`: browser state, stat derivation, API calls, CSV export, entry form behavior.
 - `server.mjs`: static file server, SQLite schema/seed, `/api/state`, `/api/unlock`, `/api/games`.
 - `README.md`: human developer handoff with run instructions, API notes, persistence details, and development guidance.
+- `.github/workflows/pages.yml`: deploys the read-only static GitHub Pages site.
 
 The Overview tab was intentionally simplified. It should remain a minimal welcome page with links/buttons to Players and Games plus a compact stat strip. The leaderboard section was removed by request.
 

@@ -6,6 +6,25 @@ This project displays player records, game history, and exported stats for a loc
 
 ## Quick Start
 
+### Public GitHub Pages Site
+
+This repo includes a GitHub Actions workflow for free GitHub Pages hosting. The Pages deployment is a static read-only version of the site: it displays stats from the committed CSV files, but it cannot add or delete games because GitHub Pages does not run the Node/SQLite backend.
+
+To enable it on GitHub:
+
+1. Go to the repo's `Settings` tab.
+2. Open `Pages`.
+3. Under `Build and deployment`, set `Source` to `GitHub Actions`.
+4. Push to `main`, or manually run the `Deploy GitHub Pages` workflow from the `Actions` tab.
+
+Expected public URL:
+
+```text
+https://psipress.github.io/botc-website/
+```
+
+### Local Editable Site
+
 Requirements:
 
 - Node.js with the built-in `node:sqlite` module available. This was developed with Node `v25.8.0`.
@@ -22,7 +41,7 @@ Open:
 http://127.0.0.1:5173/
 ```
 
-Do not run this as a plain static site for normal use. The frontend depends on the Node server's `/api/*` routes for durable game entry.
+Use the local Node server when you need passcode-protected adding/deleting games. Do not expect those write features to work on GitHub Pages.
 
 ## Repository Layout
 
@@ -32,6 +51,8 @@ styles.css                                      Layout, visual design, responsiv
 app.js                                          Browser state, stat derivation, CSV export, form logic
 server.mjs                                      Static server, SQLite setup, API endpoints
 data/botc.sqlite                                Durable SQLite database
+.github/workflows/pages.yml                     GitHub Pages static deployment
+.nojekyll                                       Keeps GitHub Pages from applying Jekyll processing
 Blood on the Clocktower - Master Sheet - Record.csv
 Blood on the Clocktower - Master Sheet - Player Stats.csv
 AGENTS.md                                       Agent-focused implementation handoff
