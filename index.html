@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Psi Press Clocktower Stats</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Blood on the Clocktower</p>
+        <h1>Psi Press Player Stats</h1>
+      </div>
+      <nav class="view-tabs" aria-label="Views">
+        <button class="tab-button is-active" data-view-button="overview" type="button">Overview</button>
+        <button class="tab-button" data-view-button="players" type="button">Players</button>
+        <button class="tab-button" data-view-button="games" type="button">Games</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="view-panel is-active" data-view="overview">
+        <section class="welcome-panel">
+          <div>
+            <p class="eyebrow">Psi Press</p>
+            <h2>Clocktower Stats Archive</h2>
+            <p class="welcome-copy">Browse the roster, compare player records, or review the full game ledger.</p>
+          </div>
+          <div class="welcome-actions">
+            <button class="primary-button" data-view-link="players" type="button">View Players</button>
+            <button class="secondary-button" data-view-link="games" type="button">View Games</button>
+          </div>
+        </div>
+        </section>
+
+        <section class="summary-grid" aria-label="League summary">
+          <article class="metric-tile">
+            <span>Total games</span>
+            <strong id="metricGames">--</strong>
+          </article>
+          <article class="metric-tile">
+            <span>Active players</span>
+            <strong id="metricPlayers">--</strong>
+          </article>
+          <article class="metric-tile">
+            <span>Good-Evil Victories</span>
+            <strong id="metricGoodWins">--</strong>
+          </article>
+          <article class="metric-tile">
+            <span>Latest game</span>
+            <strong id="metricLatest">--</strong>
+          </article>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="players">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Roster</p>
+            <h2>Player Table</h2>
+          </div>
+          <div class="toolbar">
+            <label>
+              Search
+              <input id="playerSearch" type="search" placeholder="Name or role">
+            </label>
+            <label>
+              Sort
+              <select id="playerSort">
+                <option value="games">Games played</option>
+                <option value="success">Success %</option>
+                <option value="wins">Wins</option>
+                <option value="evilFrequency">Evil frequency</option>
+                <option value="name">Name</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="table-shell">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Games</th>
+                <th>W-L</th>
+                <th>Success</th>
+                <th>Good</th>
+                <th>Evil</th>
+                <th>Travels</th>
+              </tr>
+            </thead>
+            <tbody id="playerTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="view-panel" data-view="games">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Record</p>
+            <h2>Game Ledger</h2>
+          </div>
+          <div class="toolbar">
+            <label>
+              Script
+              <select id="scriptFilter">
+                <option value="">All scripts</option>
+              </select>
+            </label>
+            <button id="downloadRecord" class="secondary-button" type="button">Download Record CSV</button>
+            <button id="downloadStats" class="secondary-button" type="button">Download Stats CSV</button>
+          </div>
+        </div>
+        <div class="table-shell">
+          <table class="games-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Outcome</th>
+                <th>Script</th>
+                <th>Format</th>
+                <th>Players</th>
+                <th>Storyteller</th>
+              </tr>
+            </thead>
+            <tbody id="gameTableBody"></tbody>
+          </table>
+        </div>
+        <section class="issues-panel" id="issuesPanel"></section>
+      </section>
+    </main>
+
+    <button id="eggButton" class="egg-button" type="button" title="Open grimoire" aria-label="Open game entry">ST</button>
+
+    <dialog id="playerDialog" class="player-dialog">
+      <div class="player-dialog-body">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Player Stats</p>
+            <h2 id="playerDialogName">Player</h2>
+          </div>
+          <button id="playerDialogClose" class="icon-button" aria-label="Close player stats" type="button">x</button>
+        </div>
+        <div id="playerDialogContent"></div>
+      </div>
+    </dialog>
+
+    <dialog id="gameDialog" class="player-dialog">
+      <div class="player-dialog-body">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Game Details</p>
+            <h2 id="gameDialogName">Game</h2>
+          </div>
+          <button id="gameDialogClose" class="icon-button" aria-label="Close game details" type="button">x</button>
+        </div>
+        <div id="gameDialogContent"></div>
+      </div>
+    </dialog>
+
+    <dialog id="deleteDialog" class="passcode-dialog">
+      <form id="deleteForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Delete Game</p>
+            <h2 id="deleteGameName">Confirm</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">x</button>
+        </div>
+        <p id="deleteGameSummary" class="delete-summary"></p>
+        <label class="passcode-field">
+          Passcode
+          <input id="deletePasscodeInput" type="password" autocomplete="current-password">
+        </label>
+        <div class="dialog-actions">
+          <span id="deleteMessage" class="entry-message" role="status"></span>
+          <button class="secondary-button" value="cancel" type="submit">Cancel</button>
+          <button id="deleteConfirm" class="danger-button" type="button">Delete</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="passcodeDialog" class="passcode-dialog">
+      <form id="passcodeForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Storyteller</p>
+            <h2>Passcode</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">x</button>
+        </div>
+        <label class="passcode-field">
+          Passcode
+          <input id="passcodeInput" type="password" autocomplete="current-password">
+        </label>
+        <div class="dialog-actions">
+          <span id="passcodeMessage" class="entry-message" role="status"></span>
+          <button class="secondary-button" value="cancel" type="submit">Cancel</button>
+          <button id="passcodeSubmit" class="primary-button" type="button">Unlock</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="entryDialog" class="entry-dialog">
+      <form id="entryForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">New result</p>
+            <h2>Enter Game</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">x</button>
+        </div>
+
+        <div class="form-grid">
+          <label>Date <input id="entryDate" name="date" type="date" required></label>
+          <label>Outcome
+            <select id="entryOutcome" name="outcome" required>
+              <option value="Good">Good</option>
+              <option value="Evil">Evil</option>
+            </select>
+          </label>
+          <label>Final day
+            <select id="entryFinalDay" name="finalDay">
+              <option value="TRUE">TRUE</option>
+              <option value="FALSE">FALSE</option>
+              <option value="">Blank</option>
+            </select>
+          </label>
+          <label>Storyteller <input id="entryStoryteller" name="storyteller" type="text" autocomplete="off"></label>
+          <label>Format
+            <select id="entryFormat" name="format">
+              <option>In-Person</option>
+              <option>Online</option>
+            </select>
+          </label>
+          <label>Script <input id="entryScript" name="script" type="text" list="scriptOptions" value="Trouble Brewing"></label>
+        </div>
+
+        <datalist id="scriptOptions"></datalist>
+        <datalist id="playerOptions"></datalist>
+        <datalist id="roleOptions"></datalist>
+
+        <div class="entry-toolbar">
+          <h3>Players</h3>
+          <div class="entry-tools">
+            <label>
+              New player
+              <input id="newPlayerName" type="text" list="playerOptions" autocomplete="off" placeholder="Name">
+            </label>
+            <button id="addNewPlayer" class="secondary-button" type="button">Add new</button>
+            <label>
+              New role
+              <input id="newRoleName" type="text" list="roleOptions" autocomplete="off" placeholder="Role">
+            </label>
+            <button id="addNewRole" class="secondary-button" type="button">Add role</button>
+            <button id="addParticipant" class="secondary-button" type="button">Blank row</button>
+          </div>
+        </div>
+        <div id="participantRows" class="participant-rows"></div>
+
+        <div class="dialog-actions">
+          <button id="resetLocalGames" class="danger-button" type="button">Clear form</button>
+          <span id="entryMessage" class="entry-message" role="status"></span>
+          <button class="secondary-button" value="cancel" type="submit">Cancel</button>
+          <button id="saveEntry" class="primary-button" type="button">Save game</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="participantTemplate">
+      <div class="participant-row">
+        <label>Name <input data-field="name" type="text" list="playerOptions" autocomplete="off"></label>
+        <label>Role <input data-field="role" type="text" list="roleOptions" autocomplete="off"></label>
+        <label>Team
+          <select data-field="alignment">
+            <option value="auto">Auto</option>
+            <option value="Good">Good</option>
+            <option value="Evil">Evil</option>
+          </select>
+        </label>
+        <label>Result
+          <select data-field="result">
+            <option value="Win">Win</option>
+            <option value="Loss">Loss</option>
+          </select>
+        </label>
+        <button class="icon-button remove-participant" type="button" aria-label="Remove player">x</button>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
