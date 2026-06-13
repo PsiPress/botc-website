@@ -6,24 +6,9 @@ This project displays player records, game history, and exported stats for a loc
 
 ## Quick Start
 
-### Public GitHub Pages Site
+### Local Full-Feature Site
 
-This repo includes a GitHub Actions workflow for free GitHub Pages hosting. The Pages deployment is a static read-only version of the site: it displays stats from the committed CSV files, but it cannot add or delete games because GitHub Pages does not run the Node/SQLite backend.
-
-To enable it on GitHub:
-
-1. Go to the repo's `Settings` tab.
-2. Open `Pages`.
-3. Under `Build and deployment`, set `Source` to `GitHub Actions`.
-4. Push to `main`, or manually run the `Deploy GitHub Pages` workflow from the `Actions` tab.
-
-Expected public URL:
-
-```text
-https://psipress.github.io/botc-website/
-```
-
-### Local Editable Site
+This is the primary way to run the app for now. It supports viewing stats, adding games, deleting accidental entries, and persisting data to SQLite.
 
 Requirements:
 
@@ -42,6 +27,23 @@ http://127.0.0.1:5173/
 ```
 
 Use the local Node server when you need passcode-protected adding/deleting games. Do not expect those write features to work on GitHub Pages.
+
+### Optional Read-Only GitHub Pages Site
+
+This repo includes a GitHub Actions workflow for free GitHub Pages hosting, but that is not the primary deployment target right now. GitHub Pages can only serve a static read-only version of the site: it displays stats from the committed CSV files, but it cannot add or delete games because GitHub Pages does not run the Node/SQLite backend.
+
+If this becomes useful later:
+
+1. Go to the repo's `Settings` tab.
+2. Open `Pages`.
+3. Under `Build and deployment`, set `Source` to `GitHub Actions`.
+4. Push to `main`, or manually run the `Deploy GitHub Pages` workflow from the `Actions` tab.
+
+Expected public URL:
+
+```text
+https://psipress.github.io/botc-website/
+```
 
 ## Repository Layout
 

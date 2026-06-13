@@ -27,7 +27,9 @@ Do not use `python3 -m http.server` for normal operation. The browser can render
 
 ## GitHub Pages
 
-This repo now includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, and the two CSV files. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
+Current product direction: use the local Node/SQLite full-feature app for now. GitHub Pages is optional/read-only infrastructure for later, not the primary target.
+
+This repo includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, and the two CSV files. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
 
 The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to the Record CSV, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
 
