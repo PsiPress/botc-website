@@ -97,6 +97,8 @@ Participant result fields store real `Win`/`Loss` values. They auto-populate fro
 
 Saving a game posts to `/api/games` with the active passcode. If the server is unavailable or the passcode is wrong, the game is not saved.
 
+Editing a game starts from that game's detail popup. The `Edit game` button sits next to `Delete game`, reuses the same entry dialog, preserves the existing game id, and saves through `PUT /api/games/:id` with the active passcode.
+
 ## API Notes
 
 `GET /api/state`
@@ -111,6 +113,10 @@ Body: `{ "passcode": "..." }`. Returns `200` for valid passcode, `401` otherwise
 
 Body: `{ "passcode": "...", "game": { ... } }`. Inserts a durable game row in SQLite.
 
+`PUT /api/games/:id`
+
+Body: `{ "passcode": "...", "game": { ... } }`. Updates an existing SQLite game row after passcode validation. The server preserves the row id and source, replacing date/outcome/storyteller/player count/format/script/winners/losers/roles/alignment overrides.
+
 `DELETE /api/games/:id`
 
 Body: `{ "passcode": "..." }`. Deletes a game row from SQLite after passcode validation. The Games tab exposes deletion only at the bottom of each game detail popup, followed by a passcode confirmation dialog.
@@ -123,12 +129,14 @@ Body: `{ "passcode": "..." }`. Deletes a game row from SQLite after passcode val
 - Correct passcode unlock succeeded.
 - Wrong passcode unlock failed.
 - Controlled `/api/games` write/delete test inserted a row and restored DB count to 27.
+- Controlled `/api/games` create/edit/delete test inserted a temp row, updated it through `PUT /api/games/:id`, deleted it, and restored DB count to 27.
 - Wrong passcode write test returned `401` and left DB count unchanged.
 - Passcode was changed by user request from `psipress27` to `psip`.
 - Website passcode-changing controls and the `/api/passcode` endpoint were removed by user request; passcode changes are code-only now.
 - Successful new-game save now closes the entry dialog and switches directly to the Games tab.
 - Game table rows are clickable and keyboard-accessible. Clicking a game opens a game detail popup with metadata, win/loss lists, role/player details, and a bottom `Delete game` button.
 - Games can be deleted from the game detail popup with the passcode, for correcting accidental entries.
+- Games can be edited from the game detail popup with the passcode, using the same entry form as new games.
 - The new-game entry form suppresses Enter-key form submission so pressing Enter in inputs does not close the dialog accidentally.
 - Desktop and mobile Chrome headless screenshots were taken after the Overview revamp; mobile wrapping was fixed.
 

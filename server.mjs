@@ -134,9 +134,27 @@ async function handleApi(request, response, url) {
       sendJson(response, 401, { error: "Passcode required." });
       return;
     }
-    const game = normalizeGame(body.game);
+    const game = normalizeGame(body.game, { id: `game-${randomUUID()}`, source: "database" });
     insertGame(game);
     sendJson(response, 201, { game });
+    return;
+  }
+
+  if (request.method === "PUT" && url.pathname.startsWith("/api/games/")) {
+    const body = await readJsonBody(request);
+    if (body.passcode !== getPasscode()) {
+      sendJson(response, 401, { error: "Passcode required." });
+      return;
+    }
+    const id = decodeURIComponent(url.pathname.slice("/api/games/".length));
+    const existing = getGameById(id);
+    if (!existing) {
+      sendJson(response, 404, { error: "Game not found." });
+      return;
+    }
+    const game = normalizeGame(body.game, { id, source: existing.source || "database" });
+    updateGame(game);
+    sendJson(response, 200, { game });
     return;
   }
 
@@ -168,7 +186,16 @@ function getPasscode() {
 }
 
 function getGames() {
-  return db.prepare("SELECT * FROM games ORDER BY rowid").all().map(row => ({
+  return db.prepare("SELECT * FROM games ORDER BY rowid").all().map(rowToGame);
+}
+
+function getGameById(id) {
+  const row = db.prepare("SELECT * FROM games WHERE id = ?").get(id);
+  return row ? rowToGame(row) : null;
+}
+
+function rowToGame(row) {
+  return {
     id: row.id,
     source: row.source,
     date: row.date,
@@ -182,10 +209,10 @@ function getGames() {
     lossNames: JSON.parse(row.loss_names),
     roles: JSON.parse(row.roles),
     alignmentOverrides: JSON.parse(row.alignment_overrides),
-  }));
+  };
 }
 
-function normalizeGame(game) {
+function normalizeGame(game, identity) {
   const roles = typeof game.roles === "object" && game.roles ? game.roles : {};
   const winNames = Array.isArray(game.winNames) ? game.winNames.map(clean).filter(Boolean) : [];
   const lossNames = Array.isArray(game.lossNames) ? game.lossNames.map(clean).filter(Boolean) : [];
@@ -198,8 +225,8 @@ function normalizeGame(game) {
   }
 
   return {
-    id: `game-${randomUUID()}`,
-    source: "database",
+    id: identity.id,
+    source: identity.source,
     date: clean(game.date),
     outcome: game.outcome,
     finalDay: clean(game.finalDay),
@@ -245,6 +272,40 @@ function deleteGame(id) {
   if (!existing) return false;
   db.prepare("DELETE FROM games WHERE id = ?").run(id);
   return true;
+}
+
+function updateGame(game) {
+  const result = db.prepare(`
+    UPDATE games SET
+      date = ?,
+      outcome = ?,
+      final_day = ?,
+      storyteller = ?,
+      player_count = ?,
+      format = ?,
+      script = ?,
+      win_names = ?,
+      loss_names = ?,
+      roles = ?,
+      alignment_overrides = ?,
+      updated_at = ?
+    WHERE id = ?
+  `).run(
+    game.date,
+    game.outcome,
+    game.finalDay,
+    game.storyteller,
+    game.playerCount,
+    game.format,
+    game.script,
+    JSON.stringify(game.winNames),
+    JSON.stringify(game.lossNames),
+    JSON.stringify(game.roles),
+    JSON.stringify(game.alignmentOverrides),
+    new Date().toISOString(),
+    game.id,
+  );
+  return result.changes > 0;
 }
 
 function serveStatic(response, pathname) {

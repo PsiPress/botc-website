@@ -121,6 +121,8 @@ const state = {
   databaseAvailable: false,
   activePasscode: "",
   pendingDeleteGameId: "",
+  pendingEditGameId: "",
+  editingGameId: "",
   stats: [],
   selectedPlayer: "",
   issues: [],
@@ -214,6 +216,8 @@ function cacheElements() {
     passcodeMessage: document.querySelector("#passcodeMessage"),
     entryDialog: document.querySelector("#entryDialog"),
     entryForm: document.querySelector("#entryForm"),
+    entryEyebrow: document.querySelector("#entryEyebrow"),
+    entryTitle: document.querySelector("#entryTitle"),
     entryDate: document.querySelector("#entryDate"),
     entryOutcome: document.querySelector("#entryOutcome"),
     entryFinalDay: document.querySelector("#entryFinalDay"),
@@ -257,7 +261,7 @@ function bindEvents() {
   });
   els.downloadRecord.addEventListener("click", downloadRecordCsv);
   els.downloadStats.addEventListener("click", downloadStatsCsv);
-  els.eggButton.addEventListener("click", requestEntryUnlock);
+  els.eggButton.addEventListener("click", () => requestEntryUnlock());
   els.passcodeSubmit.addEventListener("click", submitPasscode);
   els.passcodeInput.addEventListener("keydown", event => {
     if (event.key === "Enter") {
@@ -699,6 +703,8 @@ function openGameDialog(gameId) {
 
   els.gameDialogName.textContent = `${game.date} ${game.script || "Game"}`;
   els.gameDialogContent.innerHTML = renderGameDialogContent(game);
+  const editButton = els.gameDialogContent.querySelector("[data-edit-game-detail]");
+  if (editButton) editButton.addEventListener("click", () => requestEntryUnlock(game.id));
   const deleteButton = els.gameDialogContent.querySelector("[data-delete-game-detail]");
   if (deleteButton) deleteButton.addEventListener("click", () => openDeleteDialog(game.id));
   els.gameDialog.showModal();
@@ -767,6 +773,7 @@ function renderGameDialogContent(game) {
 
     ${state.databaseAvailable ? `
       <div class="game-dialog-actions">
+        <button class="secondary-button" data-edit-game-detail="${escapeHtml(game.id)}" type="button">Edit game</button>
         <button class="danger-button" data-delete-game-detail="${escapeHtml(game.id)}" type="button">Delete game</button>
       </div>
     ` : ""}
@@ -889,10 +896,12 @@ function firstActivePlayer() {
   return [...state.stats].sort((a, b) => b.games - a.games)[0]?.player || "";
 }
 
-function requestEntryUnlock() {
+function requestEntryUnlock(gameId = "") {
+  state.pendingEditGameId = gameId;
   els.passcodeForm.reset();
   els.passcodeMessage.textContent = "";
   els.passcodeMessage.classList.remove("error");
+  if (els.gameDialog.open) els.gameDialog.close();
   els.passcodeDialog.showModal();
   window.setTimeout(() => els.passcodeInput.focus(), 0);
 }
@@ -906,7 +915,13 @@ async function submitPasscode() {
   if (unlocked) {
     state.activePasscode = passcode;
     els.passcodeDialog.close();
-    openEntryDialog();
+    if (state.pendingEditGameId) {
+      const gameId = state.pendingEditGameId;
+      state.pendingEditGameId = "";
+      openEditGame(gameId);
+    } else {
+      openEntryDialog();
+    }
     return;
   }
   els.passcodeMessage.textContent = "Incorrect passcode.";
@@ -932,7 +947,11 @@ function getEntryPasscode() {
 }
 
 function openEntryDialog() {
+  state.editingGameId = "";
   els.entryForm.reset();
+  els.entryEyebrow.textContent = "New result";
+  els.entryTitle.textContent = "Enter Game";
+  els.saveEntry.textContent = "Save game";
   els.entryDate.valueAsDate = new Date();
   els.entryScript.value = "Trouble Brewing";
   els.newPlayerName.value = "";
@@ -940,6 +959,39 @@ function openEntryDialog() {
   els.participantRows.innerHTML = "";
   for (let i = 0; i < 8; i += 1) addParticipantRow();
   els.entryMessage.textContent = "";
+  els.entryDialog.showModal();
+}
+
+function openEditGame(gameId) {
+  const game = getAllGames().find(item => item.id === gameId);
+  if (!game || !state.databaseAvailable) return;
+
+  state.editingGameId = game.id;
+  els.entryForm.reset();
+  els.entryEyebrow.textContent = "Existing result";
+  els.entryTitle.textContent = "Edit Game";
+  els.saveEntry.textContent = "Update game";
+  els.entryDate.value = sheetDateToHtmlDate(game.date);
+  els.entryOutcome.value = game.outcome === "Evil" ? "Evil" : "Good";
+  els.entryFinalDay.value = game.finalDay || "";
+  els.entryStoryteller.value = game.storyteller || "";
+  els.entryFormat.value = game.format || "In-Person";
+  els.entryScript.value = game.script || "";
+  els.newPlayerName.value = "";
+  els.newRoleName.value = "";
+  els.participantRows.innerHTML = "";
+  getGameParticipants(game).forEach(participant => {
+    addParticipantRow({
+      name: participant.name,
+      role: participant.role,
+      alignment: participant.alignment || "auto",
+      result: participant.result || "Loss",
+    });
+  });
+  if (!els.participantRows.children.length) addParticipantRow();
+  els.entryMessage.textContent = "";
+  els.entryMessage.classList.remove("error");
+  if (els.gameDialog.open) els.gameDialog.close();
   els.entryDialog.showModal();
 }
 
@@ -1008,7 +1060,7 @@ function addParticipantRow(data = {}) {
   });
   els.participantRows.append(node);
   updateParticipantAlignmentFromRole(node);
-  updateParticipantResult(node, { force: true });
+  updateParticipantResult(node, { force: !data.result });
   return node;
 }
 
@@ -1089,8 +1141,10 @@ async function saveEntry() {
   });
 
   const game = {
-    id: `draft-${Date.now()}`,
-    source: "draft",
+    id: state.editingGameId || `draft-${Date.now()}`,
+    source: state.editingGameId
+      ? getAllGames().find(item => item.id === state.editingGameId)?.source || "database"
+      : "draft",
     date,
     outcome,
     finalDay: els.entryFinalDay.value,
@@ -1106,8 +1160,9 @@ async function saveEntry() {
 
   if (state.databaseAvailable) {
     try {
-      const response = await fetch("/api/games", {
-        method: "POST",
+      const isEditing = Boolean(state.editingGameId);
+      const response = await fetch(isEditing ? `/api/games/${encodeURIComponent(state.editingGameId)}` : "/api/games", {
+        method: isEditing ? "PUT" : "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ passcode: state.activePasscode, game }),
       });
@@ -1117,7 +1172,12 @@ async function saveEntry() {
         els.entryMessage.classList.add("error");
         return;
       }
-      state.games.push(payload.game);
+      if (isEditing) {
+        state.games = state.games.map(item => item.id === payload.game.id ? payload.game : item);
+        state.localGames = state.localGames.map(item => item.id === payload.game.id ? payload.game : item);
+      } else {
+        state.games.push(payload.game);
+      }
     } catch {
       els.entryMessage.textContent = "Database server is unavailable.";
       els.entryMessage.classList.add("error");
@@ -1133,6 +1193,7 @@ async function saveEntry() {
     state.draftPlayers.add(item.name);
     state.draftRoles.add(item.role);
   });
+  state.editingGameId = "";
   els.entryDialog.close();
   rebuild();
   setView("games");
@@ -1244,6 +1305,14 @@ function sheetDateValue(value) {
 function htmlDateToSheetDate(value) {
   const [year, month, day] = value.split("-");
   return `${Number(month)}/${Number(day)}/${year.slice(-2)}`;
+}
+
+function sheetDateToHtmlDate(value) {
+  const parts = clean(value).split("/").map(Number);
+  if (parts.length !== 3) return "";
+  const [month, day, year] = parts;
+  const fullYear = year < 100 ? 2000 + year : year;
+  return `${fullYear}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function escapeHtml(value) {

@@ -70,7 +70,7 @@ data/botc.sqlite
 
 On first startup, `server.mjs` creates the SQLite schema and seeds the `games` table from `Blood on the Clocktower - Master Sheet - Record.csv` if the table is empty.
 
-New game entries are saved to SQLite through `POST /api/games`. They are not saved to browser local storage. If you want entered games preserved when handing off or deploying from the repo, commit and push `data/botc.sqlite`.
+New game entries are saved to SQLite through `POST /api/games`, and past games can be corrected through `PUT /api/games/:id`. They are not saved to browser local storage. If you want entered or edited games preserved when handing off or deploying from the repo, commit and push `data/botc.sqlite`.
 
 The original CSV files are still useful as source references and export-format examples, but ongoing edits should go through the app/database unless you intentionally rebuild the seed data.
 
@@ -157,6 +157,31 @@ Request:
 
 Inserts a durable game row in SQLite.
 
+`PUT /api/games/:id`
+
+Request:
+
+```json
+{
+  "passcode": "psip",
+  "game": {
+    "date": "6/13/26",
+    "outcome": "Evil",
+    "finalDay": "FALSE",
+    "storyteller": "Anika",
+    "playerCount": 7,
+    "format": "Online",
+    "script": "Trouble Brewing",
+    "winNames": ["Rohan"],
+    "lossNames": ["Aden"],
+    "roles": { "Aden": "Washerwoman", "Rohan": "Imp" },
+    "alignmentOverrides": { "Aden": "Good", "Rohan": "Evil" }
+  }
+}
+```
+
+Updates an existing SQLite game row after validating the passcode.
+
 `DELETE /api/games/:id`
 
 Request:
@@ -184,7 +209,7 @@ When editing the UI:
 - Keep Players and Games focused on data review and export.
 - Make sure mobile layouts do not clip text or buttons.
 - Preserve the `ST` entry button and passcode gate for adding games.
-- Keep game deletion password-protected and scoped to the game detail popup.
+- Keep game editing and deletion password-protected and scoped to the game detail popup.
 - Do not add a website control for changing the passcode unless that product decision changes.
 - Keep game entry ergonomic for new players and new roles; both should be addable without editing code or the database manually.
 
