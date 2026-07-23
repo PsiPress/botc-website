@@ -7,130 +7,48 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Blood on the Clocktower</p>
-        <h1>Psi Press Player Stats</h1>
-      </div>
-      <nav class="view-tabs" aria-label="Views">
-        <button class="tab-button is-active" data-view-button="overview" type="button">Overview</button>
-        <button class="tab-button" data-view-button="players" type="button">Players</button>
-        <button class="tab-button" data-view-button="games" type="button">Games</button>
+    <header class="site-header">
+      <a class="brand" href="#home" data-view-link="home" aria-label="Psi Press Clocktower home">
+        <span class="brand-mark">Ψ</span><span><strong>Psi Press</strong><small>Blood on the Clocktower</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <button class="nav-link is-active" data-view-button="home" type="button">Home</button>
+        <button class="nav-link" data-view-button="about" type="button">About</button>
+        <button class="nav-link" data-view-button="roster" type="button">Roster</button>
+        <button class="nav-link" data-view-button="awards" type="button">Awards</button>
+        <button class="nav-link" data-view-button="games" type="button">Games</button>
+        <button class="nav-link" data-view-button="statistics" type="button">Statistics</button>
+        <button class="nav-link" data-view-button="events" type="button">Events</button>
+        <button class="nav-link" data-view-button="gallery" type="button">Gallery</button>
       </nav>
     </header>
 
     <main>
-      <section class="view-panel is-active" data-view="overview">
-        <section class="welcome-panel">
-          <div>
-            <p class="eyebrow">Psi Press</p>
-            <h2>Clocktower Stats Archive</h2>
-            <p class="welcome-copy">Browse the roster, compare player records, or review the full game ledger.</p>
-          </div>
-          <div class="welcome-actions">
-            <button class="primary-button" data-view-link="players" type="button">View Players</button>
-            <button class="secondary-button" data-view-link="games" type="button">View Games</button>
-          </div>
+      <section class="view-panel is-active" data-view="home">
+        <div class="hero-panel">
+          <div class="hero-copy"><p class="eyebrow">Psi Press presents</p><h1>Every bluff, every gamble, every win.</h1><p>A home for our Blood on the Clocktower community: the people, the legends, and the stories we make around the grimoire.</p><div class="hero-actions"><button class="primary-button" data-view-link="roster">Meet the players</button><button class="text-button" data-view-link="games">Explore the archive <span>→</span></button></div></div>
+          <div class="hero-art" aria-hidden="true"><div class="moon"></div><div class="tower"><i></i><i></i><i></i></div><span class="star star-one">✦</span><span class="star star-two">✦</span><span class="star star-three">✦</span></div>
         </div>
-        </section>
-
-        <section class="summary-grid" aria-label="League summary">
-          <article class="metric-tile">
-            <span>Total games</span>
-            <strong id="metricGames">--</strong>
-          </article>
-          <article class="metric-tile">
-            <span>Active players</span>
-            <strong id="metricPlayers">--</strong>
-          </article>
-          <article class="metric-tile">
-            <span>Good-Evil Victories</span>
-            <strong id="metricGoodWins">--</strong>
-          </article>
-          <article class="metric-tile">
-            <span>Latest game</span>
-            <strong id="metricLatest">--</strong>
-          </article>
-        </section>
+        <section class="summary-grid" aria-label="Community summary"><article class="metric-tile"><span>Games played</span><strong id="metricGames">--</strong></article><article class="metric-tile"><span>Players in the story</span><strong id="metricPlayers">--</strong></article><article class="metric-tile"><span>Good wins</span><strong id="metricGoodWins">--</strong></article><article class="metric-tile"><span>Most recent game</span><strong id="metricLatest">--</strong></article></section>
+        <section class="home-links"><button data-view-link="awards"><span>✦</span><strong>Hall of fame</strong><small>Meet our award winners</small></button><button data-view-link="events"><span>◌</span><strong>Gather round</strong><small>See what is coming up</small></button><button data-view-link="gallery"><span>▣</span><strong>Photo album</strong><small>Moments from game night</small></button></section>
       </section>
 
-      <section class="view-panel" data-view="players">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Roster</p>
-            <h2>Player Table</h2>
-          </div>
-          <div class="toolbar">
-            <label>
-              Search
-              <input id="playerSearch" type="search" placeholder="Name or role">
-            </label>
-            <label>
-              Sort
-              <select id="playerSort">
-                <option value="games">Games played</option>
-                <option value="success">Success %</option>
-                <option value="wins">Wins</option>
-                <option value="evilFrequency">Evil frequency</option>
-                <option value="name">Name</option>
-              </select>
-            </label>
-          </div>
-        </div>
-        <div class="table-shell">
-          <table class="stats-table">
-            <thead>
-              <tr>
-                <th>Player</th>
-                <th>Games</th>
-                <th>W-L</th>
-                <th>Success</th>
-                <th>Good</th>
-                <th>Evil</th>
-                <th>Travels</th>
-              </tr>
-            </thead>
-            <tbody id="playerTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+      <section class="view-panel page-intro" data-view="about"><p class="eyebrow">Our story</p><h2>More than a game night.</h2><div class="prose-card"><p class="placeholder-copy">This is space for a description of the Psi Press Clocktower community: how we found the game, what brings us back to the circle, and the particular kind of joyful chaos we create together.</p><span class="placeholder-note">Description coming soon</span></div></section>
 
-      <section class="view-panel" data-view="games">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Record</p>
-            <h2>Game Ledger</h2>
-          </div>
-          <div class="toolbar">
-            <label>
-              Script
-              <select id="scriptFilter">
-                <option value="">All scripts</option>
-              </select>
-            </label>
-            <button id="downloadRecord" class="secondary-button" type="button">Download Record CSV</button>
-            <button id="downloadStats" class="secondary-button" type="button">Download Stats CSV</button>
-          </div>
-        </div>
-        <div class="table-shell">
-          <table class="games-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Outcome</th>
-                <th>Script</th>
-                <th>Format</th>
-                <th>Players</th>
-                <th>Storyteller</th>
-              </tr>
-            </thead>
-            <tbody id="gameTableBody"></tbody>
-          </table>
-        </div>
-        <section class="issues-panel" id="issuesPanel"></section>
-      </section>
+      <section class="view-panel" data-view="roster"><div class="section-heading"><div><p class="eyebrow">The circle</p><h2>Meet the roster</h2><p class="section-copy">Sixteen storytellers, suspects, and excellent liars.</p></div><label class="search-label">Find a player<input id="playerSearch" type="search" placeholder="Search the roster"></label></div><div id="rosterGrid" class="roster-grid"></div><select id="playerSort" hidden><option value="games">Games played</option></select><div class="table-shell visually-hidden"><table><tbody id="playerTableBody"></tbody></table></div></section>
+
+      <section class="view-panel" data-view="awards"><div class="page-intro"><p class="eyebrow">The honors</p><h2>Awards worth scheming for.</h2><p class="section-copy">A pair of annual celebrations for the people who make our games unforgettable.</p></div><div class="awards-grid"><button class="award-panel moon-award" data-award="Moonlit Mastermind"><div class="award-illustration">☾</div><div><p class="eyebrow">The Moonlit Mastermind</p><h3>For the player whose plans linger long after dawn.</h3><span>View winners →</span></div></button><button class="award-panel flame-award" data-award="The Candlekeeper"><div class="award-illustration">♜</div><div><p class="eyebrow">The Candlekeeper</p><h3>For the storyteller who makes every night feel magical.</h3><span>View winners →</span></div></button></div></section>
+
+      <section class="view-panel" data-view="games"><div class="section-heading"><div><p class="eyebrow">The archive</p><h2>Every game played</h2><p class="section-copy">Our complete game record, drawn from the Blood on the Clocktower Games Sheet.</p></div><div class="toolbar"><label>Script<select id="scriptFilter"><option value="">All scripts</option></select></label><button id="downloadRecord" class="secondary-button" type="button">Download record</button></div></div><div class="table-shell"><table class="games-table"><thead><tr><th>Date</th><th>Outcome</th><th>Script</th><th>Format</th><th>Players</th><th>Storyteller</th></tr></thead><tbody id="gameTableBody"></tbody></table></div><button id="downloadStats" hidden type="button">Download Stats CSV</button><section class="issues-panel" id="issuesPanel"></section></section>
+
+      <section class="view-panel" data-view="statistics"><div class="page-intro"><p class="eyebrow">Read the signs</p><h2>Statistics</h2><p class="section-copy">Compare win rates across players, characters, and alignments.</p></div><div class="stats-controls"><label>Player<select id="statsPlayer"><option value="">Choose a player</option></select></label><label>Character<select id="statsRole"><option value="">Choose a character</option></select></label></div><div id="statisticsResults" class="statistics-results"><p>Select a player or character to reveal their record.</p></div></section>
+
+      <section class="view-panel" data-view="events"><div class="page-intro"><p class="eyebrow">Save the date</p><h2>Upcoming events</h2></div><div class="event-list"><button class="event-banner" data-event="Summer Moonlight Session"><span class="event-date">AUG<br><strong>16</strong></span><div><p class="eyebrow">Game night</p><h3>Summer Moonlight Session</h3><p>Our next evening of suspicion, stories, and snacks.</p></div><span>Details →</span></button><button class="event-banner" data-event="Autumn Storyteller Workshop"><span class="event-date">SEP<br><strong>07</strong></span><div><p class="eyebrow">Workshop</p><h3>Autumn Storyteller Workshop</h3><p>An afternoon for building scripts and practicing the art of the bluff.</p></div><span>Details →</span></button></div></section>
+
+      <section class="view-panel" data-view="gallery"><div class="page-intro"><p class="eyebrow">In pictures</p><h2>The gallery</h2><p class="section-copy">A place for photographs from the table, the afterparty, and everything in between.</p></div><div class="gallery-grid"><div class="gallery-placeholder gallery-1"><span>Photo 1</span></div><div class="gallery-placeholder gallery-2"><span>Photo 2</span></div><div class="gallery-placeholder gallery-3"><span>Photo 3</span></div><div class="gallery-placeholder gallery-4"><span>Photo 4</span></div><div class="gallery-placeholder gallery-5"><span>Photo 5</span></div><div class="gallery-placeholder gallery-6"><span>Photo 6</span></div><div class="gallery-placeholder gallery-7"><span>Photo 7</span></div><div class="gallery-placeholder gallery-8"><span>Photo 8</span></div><div class="gallery-placeholder gallery-9"><span>Photo 9</span></div></div></section>
     </main>
 
+    <dialog id="infoDialog" class="passcode-dialog"><div class="player-dialog-body"><div class="dialog-heading"><div><p id="infoDialogEyebrow" class="eyebrow">Details</p><h2 id="infoDialogTitle">Details</h2></div><button id="infoDialogClose" class="icon-button" aria-label="Close details" type="button">×</button></div><div id="infoDialogContent"></div></div></dialog>
     <button id="eggButton" class="egg-button" type="button" title="Open grimoire" aria-label="Open game entry">ST</button>
 
     <dialog id="playerDialog" class="player-dialog">
