@@ -181,6 +181,15 @@ async function loadDatabaseState() {
 
 function cacheElements() {
   Object.assign(els, {
+    rosterGrid: document.querySelector("#rosterGrid"),
+    statsPlayer: document.querySelector("#statsPlayer"),
+    statsRole: document.querySelector("#statsRole"),
+    statisticsResults: document.querySelector("#statisticsResults"),
+    infoDialog: document.querySelector("#infoDialog"),
+    infoDialogTitle: document.querySelector("#infoDialogTitle"),
+    infoDialogEyebrow: document.querySelector("#infoDialogEyebrow"),
+    infoDialogContent: document.querySelector("#infoDialogContent"),
+    infoDialogClose: document.querySelector("#infoDialogClose"),
     metricGames: document.querySelector("#metricGames"),
     metricPlayers: document.querySelector("#metricPlayers"),
     metricGoodWins: document.querySelector("#metricGoodWins"),
@@ -247,8 +256,13 @@ function bindEvents() {
   document.querySelectorAll("[data-view-link]").forEach(button => {
     button.addEventListener("click", () => setView(button.dataset.viewLink));
   });
-  els.playerSearch.addEventListener("input", renderPlayerTable);
+  els.playerSearch.addEventListener("input", () => { renderPlayerTable(); renderRoster(); });
   els.playerSort.addEventListener("change", renderPlayerTable);
+  els.statsPlayer.addEventListener("change", renderStatistics);
+  els.statsRole.addEventListener("change", renderStatistics);
+  els.infoDialogClose.addEventListener("click", () => els.infoDialog.close());
+  document.querySelectorAll("[data-award]").forEach(button => button.addEventListener("click", () => openInfo("Award winners", button.dataset.award, `<p class="section-copy">The winners’ roll for this award will appear here as the honors are announced.</p><div class="statistics-results"><p>Winner list coming soon.</p></div>`)));
+  document.querySelectorAll("[data-event]").forEach(button => button.addEventListener("click", () => openInfo("Upcoming event", button.dataset.event, `<p class="section-copy">Full event details, location, RSVP information, and any special notes will be shared here.</p><div class="statistics-results"><p>More details coming soon.</p></div>`)));
   els.playerDialogClose.addEventListener("click", () => els.playerDialog.close());
   els.gameDialogClose.addEventListener("click", () => els.gameDialog.close());
   els.scriptFilter.addEventListener("change", renderGames);
@@ -318,6 +332,9 @@ function renderAll() {
   renderDatalists();
   renderSummary();
   renderPlayerTable();
+  renderRoster();
+  renderStatisticsControls();
+  renderStatistics();
   renderScriptFilter();
   renderGames();
   renderIssues();
@@ -573,6 +590,59 @@ function renderPlayerTable() {
       }
     });
   });
+}
+
+function renderRoster() {
+  const query = clean(els.playerSearch.value).toLowerCase();
+  const roster = state.stats.filter(stat => stat.games + stat.travelsGood + stat.travelsEvil > 0).filter(stat => {
+    const roles = [...stat.roles.keys()].join(" ").toLowerCase();
+    return !query || stat.player.toLowerCase().includes(query) || roles.includes(query);
+  }).sort((a, b) => a.player.localeCompare(b.player)).slice(0, 16);
+  els.rosterGrid.innerHTML = roster.map(stat => `
+    <article class="roster-card"><div class="roster-photo" aria-label="Photo placeholder for ${escapeHtml(stat.player)}">${escapeHtml(stat.player.charAt(0))}</div><div class="roster-card-body"><h3>${escapeHtml(stat.player)}</h3><p>${stat.games} games · ${formatPercent(stat.success)} win rate</p><button class="secondary-button" data-select-roster-player="${escapeHtml(stat.player)}" type="button">View profile</button></div></article>`).join("") || `<p class="empty-state">No players found.</p>`;
+  els.rosterGrid.querySelectorAll("[data-select-roster-player]").forEach(button => button.addEventListener("click", () => openPlayerDialog(button.dataset.selectRosterPlayer)));
+}
+
+function renderStatisticsControls() {
+  const currentPlayer = els.statsPlayer.value;
+  const currentRole = els.statsRole.value;
+  const active = state.stats.filter(stat => stat.games > 0).sort((a, b) => a.player.localeCompare(b.player));
+  const roles = [...new Set(state.stats.flatMap(stat => [...stat.roles.keys()]))].sort((a, b) => a.localeCompare(b));
+  els.statsPlayer.innerHTML = `<option value="">Choose a player</option>${active.map(stat => `<option value="${escapeHtml(stat.player)}">${escapeHtml(stat.player)}</option>`).join("")}`;
+  els.statsRole.innerHTML = `<option value="">Choose a character</option>${roles.map(role => `<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("")}`;
+  els.statsPlayer.value = currentPlayer;
+  els.statsRole.value = currentRole;
+}
+
+function renderStatistics() {
+  const player = els.statsPlayer.value;
+  const role = els.statsRole.value;
+  if (player) {
+    const stat = state.stats.find(item => item.player === player);
+    if (!stat) return;
+    els.statisticsResults.innerHTML = statisticsCard(`${escapeHtml(stat.player)}’s record`, stat.games, stat.wins, stat.losses, stat.success, stat.goodWinrate, stat.evilWinrate);
+    return;
+  }
+  if (role) {
+    const entries = state.stats.flatMap(stat => stat.history.filter(entry => entry.role === role && !entry.isTraveler));
+    const wins = entries.filter(entry => entry.result === "Win").length;
+    const good = entries.filter(entry => entry.alignment === "Good");
+    const evil = entries.filter(entry => entry.alignment === "Evil");
+    els.statisticsResults.innerHTML = statisticsCard(`${escapeHtml(role)} record`, entries.length, wins, entries.length - wins, percentValue(wins, entries.length), percentValue(good.filter(entry => entry.teamResult === "Win").length, good.length), percentValue(evil.filter(entry => entry.teamResult === "Win").length, evil.length));
+    return;
+  }
+  els.statisticsResults.innerHTML = `<p>Select a player or character to reveal their record.</p>`;
+}
+
+function statisticsCard(title, games, wins, losses, winrate, goodRate, evilRate) {
+  return `<h3>${title}</h3><div class="stat-result-grid"><article><span>Games</span><strong>${games}</strong></article><article><span>Record</span><strong>${wins}–${losses}</strong></article><article><span>Win rate</span><strong>${formatPercent(winrate, 1)}</strong></article><article><span>Good / Evil</span><strong>${formatPercent(goodRate)} / ${formatPercent(evilRate)}</strong></article></div>`;
+}
+
+function openInfo(eyebrow, title, content) {
+  els.infoDialogEyebrow.textContent = eyebrow;
+  els.infoDialogTitle.textContent = title;
+  els.infoDialogContent.innerHTML = content;
+  els.infoDialog.showModal();
 }
 
 function openPlayerDialog(player) {

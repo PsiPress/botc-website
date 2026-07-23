@@ -155,3 +155,7 @@ origin = https://github.com/PsiPress/botc-website.git
 ## Ongoing Instruction
 
 Keep this file updated whenever implementation decisions, data flow, persistence, run commands, or major UI behavior changes.
+
+## Website Reorganization (2026-07)
+
+The primary navigation is now organized as Home, About, Roster, Awards, Games, Statistics, Events, and Gallery. Roster presents up to 16 active-player cards with image placeholders and profile buttons; profiles reuse the complete player-stat dialog. Awards, events, and gallery intentionally contain polished placeholder space that can be filled with final copy, winner lists, event metadata, and photography later. The Statistics page adds player and character record lookup controls derived from the live game data. The Games page retains the durable game ledger and identifies the Games Sheet as its archival source in the UI.
