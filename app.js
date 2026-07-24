@@ -145,7 +145,9 @@ async function init() {
       state.games = databaseState.games;
       state.localGames = [];
     } else {
-      const gamesSheetState = await loadStaticGamesSheet();
+      const response = await fetch(GAMES_SHEET_JSON);
+      if (!response.ok) throw new Error(`Could not load ${GAMES_SHEET_JSON}`);
+      const gamesSheetState = await response.json();
       state.headers = gamesSheetState.headers;
       state.players = state.headers.slice(9).filter(Boolean);
       state.games = gamesSheetState.games;

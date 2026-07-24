@@ -28,7 +28,7 @@ Current product direction: use the local Node/SQLite full-feature app for now. G
 
 This repo includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, `Blood on the Clocktower - Games Sheet.csv`, and `games-sheet.json`. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
 
-The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` uses the `games-sheet.json` CSV snapshot and falls back directly to `Blood on the Clocktower - Games Sheet.csv` if the snapshot cannot be loaded; it hides the `ST` entry button and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
+The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to the `games-sheet.json` CSV snapshot, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
 
 To enable Pages in GitHub: Settings -> Pages -> Build and deployment -> Source: GitHub Actions. Expected URL is `https://psipress.github.io/botc-website/`.
 
