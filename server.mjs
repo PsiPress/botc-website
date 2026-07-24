@@ -1,14 +1,16 @@
 import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { gamesSheetState, readGamesSheet } from "./games-sheet.mjs";
 
 const ROOT = fileURLToPath(new URL(".", import.meta.url));
 const DB_DIR = join(ROOT, "data");
 const DB_PATH = join(DB_DIR, "botc.sqlite");
-const RECORD_CSV = "Blood on the Clocktower - Master Sheet - Record.csv";
+const GAMES_SHEET = "Blood on the Clocktower - Games Sheet.xlsx";
+const GAMES_SHEET_JSON = "games-sheet.json";
 const DEFAULT_PASSCODE = "psip";
 const PORT = Number(process.env.PORT || 5173);
 
@@ -20,6 +22,7 @@ const MIME_TYPES = {
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
   ".svg": "image/svg+xml",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 mkdirSync(DB_DIR, { recursive: true });
@@ -62,15 +65,36 @@ function setupDatabase() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS import_metadata (
+      source TEXT PRIMARY KEY,
+      content_hash TEXT NOT NULL
+    );
   `);
 
-  const gameCount = db.prepare("SELECT COUNT(*) AS count FROM games").get().count;
-  if (gameCount === 0) seedRecordCsv();
+  synchronizeGamesSheet();
 }
 
-function seedRecordCsv() {
-  const rows = parseCsv(readFileSync(join(ROOT, RECORD_CSV), "utf8"));
-  const headers = rows[1];
+function synchronizeGamesSheet() {
+  const workbook = readGamesSheet(join(ROOT, GAMES_SHEET));
+  writeFileSync(join(ROOT, GAMES_SHEET_JSON), `${JSON.stringify(gamesSheetState(workbook), null, 2)}\n`);
+  const contentHash = createHash("sha256").update(readFileSync(join(ROOT, GAMES_SHEET))).digest("hex");
+  const previous = db.prepare("SELECT content_hash FROM import_metadata WHERE source = ?").get("games-sheet");
+  const oldRecordRows = db.prepare("SELECT COUNT(*) AS count FROM games WHERE source = 'record'").get().count;
+  if (previous?.content_hash === contentHash && oldRecordRows === 0) return;
+
+  db.exec("BEGIN");
+  try {
+    db.prepare("DELETE FROM games WHERE source IN ('record', 'games-sheet')").run();
+    seedGamesSheet(workbook);
+    db.prepare(`INSERT OR REPLACE INTO import_metadata (source, content_hash) VALUES (?, ?)`).run("games-sheet", contentHash);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+function seedGamesSheet(workbook) {
   const insert = db.prepare(`
     INSERT INTO games (
       id, source, date, outcome, final_day, storyteller, player_count, format, script,
@@ -79,33 +103,11 @@ function seedRecordCsv() {
   `);
   const now = new Date().toISOString();
 
-  rows.slice(2).forEach((row, index) => {
-    const date = clean(row[0]);
-    const outcome = clean(row[1]);
-    if (!date || !outcome) return;
-
-    const roles = {};
-    headers.slice(9).forEach((player, offset) => {
-      const role = clean(row[offset + 9]);
-      if (role && role.toLowerCase() !== "n/a") roles[player] = role;
-    });
-
+  gamesSheetState(workbook).games.forEach(game => {
     insert.run(
-      `record-${index}`,
-      "record",
-      date,
-      outcome,
-      clean(row[2]),
-      clean(row[3]),
-      numberOrZero(row[4]),
-      clean(row[5]),
-      clean(row[6]),
-      JSON.stringify(splitNames(row[7])),
-      JSON.stringify(splitNames(row[8])),
-      JSON.stringify(roles),
-      JSON.stringify({}),
-      now,
-      now,
+      game.id, game.source, game.date, game.outcome, game.finalDay, game.storyteller,
+      game.playerCount, game.format, game.script, JSON.stringify(game.winNames),
+      JSON.stringify(game.lossNames), JSON.stringify(game.roles), JSON.stringify(game.alignmentOverrides), now, now,
     );
   });
 }
@@ -177,8 +179,7 @@ async function handleApi(request, response, url) {
 }
 
 function getRecordHeaders() {
-  const rows = parseCsv(readFileSync(join(ROOT, RECORD_CSV), "utf8"));
-  return rows[1];
+  return gamesSheetState(readGamesSheet(join(ROOT, GAMES_SHEET))).headers;
 }
 
 function getPasscode() {
@@ -391,9 +392,4 @@ function splitNames(value) {
     .split(",")
     .map(name => name.trim())
     .filter(Boolean);
-}
-
-function numberOrZero(value) {
-  const parsed = Number.parseInt(clean(value), 10);
-  return Number.isFinite(parsed) ? parsed : 0;
 }

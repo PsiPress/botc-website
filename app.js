@@ -145,13 +145,12 @@ async function init() {
       state.games = databaseState.games;
       state.localGames = [];
     } else {
-      const response = await fetch(RECORD_CSV);
-      if (!response.ok) throw new Error(`Could not load ${RECORD_CSV}`);
-      const csv = await response.text();
-      const rows = parseCsv(csv);
-      state.headers = rows[1];
+      const response = await fetch(GAMES_SHEET_JSON);
+      if (!response.ok) throw new Error(`Could not load ${GAMES_SHEET_JSON}`);
+      const workbookState = await response.json();
+      state.headers = workbookState.headers;
       state.players = state.headers.slice(9).filter(Boolean);
-      state.games = rows.slice(2).map(rowToGame).filter(Boolean);
+      state.games = workbookState.games;
       state.localGames = [];
     }
     rebuild();
