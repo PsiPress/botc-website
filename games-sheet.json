@@ -1,0 +1,1068 @@
+{
+  "headers": [
+    "",
+    "Outcome",
+    "Final Day",
+    "Storyteller",
+    "Player Count",
+    "Format",
+    "Script",
+    "Win",
+    "Loss",
+    "Aden",
+    "Alexandra",
+    "Andreas",
+    "Anika",
+    "Asher",
+    "Carlos",
+    "Filippos",
+    "Hanlei",
+    "Jasmine",
+    "Josh",
+    "Kate",
+    "Marcus",
+    "Natalie",
+    "Raj",
+    "Ren",
+    "Rohan",
+    "Ryan",
+    "Vic",
+    "Vincent",
+    "Will",
+    "Ziad",
+    "Tyler",
+    "August",
+    "Sara",
+    "Carina",
+    "Morgan",
+    "Purpleline",
+    "Spencer",
+    "Karen",
+    "Rebecca",
+    "Yaran",
+    "Wendell",
+    "Joy",
+    "Jack",
+    "Izzy",
+    "Chris",
+    "Pavlik"
+  ],
+  "games": [
+    {
+      "id": "games-sheet-0",
+      "source": "games-sheet",
+      "date": "1/25/25",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 8,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Aden",
+        "Carlos",
+        "Ren",
+        "Ryan",
+        "Will",
+        "Ziad"
+      ],
+      "lossNames": [
+        "Alexandra",
+        "Rohan"
+      ],
+      "roles": {
+        "Aden": "Virgin",
+        "Alexandra": "Imp",
+        "Carlos": "Drunk",
+        "Ren": "Washerwoman",
+        "Rohan": "Spy",
+        "Ryan": "Undertaker",
+        "Will": "Mayor",
+        "Ziad": "Fortune Teller"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-1",
+      "source": "games-sheet",
+      "date": "1/25/25",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 8,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Alexandra",
+        "Rohan",
+        "Ryan",
+        "Will",
+        "Ziad",
+        "Carlos"
+      ],
+      "lossNames": [
+        "Aden",
+        "Ren"
+      ],
+      "roles": {
+        "Aden": "Scarlet Woman",
+        "Alexandra": "Undertaker",
+        "Carlos": "Washerwoman",
+        "Ren": "Imp",
+        "Rohan": "Drunk",
+        "Ryan": "Virgin",
+        "Will": "Fortune Teller",
+        "Ziad": "Ravenkeeper"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-2",
+      "source": "games-sheet",
+      "date": "3/5/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 9,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Alexandra",
+        "Asher"
+      ],
+      "lossNames": [
+        "Andreas",
+        "Filippos",
+        "Jasmine",
+        "Josh",
+        "Natalie",
+        "Rohan",
+        "Ryan"
+      ],
+      "roles": {
+        "Alexandra": "Spy",
+        "Andreas": "Drunk",
+        "Asher": "Imp",
+        "Filippos": "Virgin",
+        "Jasmine": "Recluse",
+        "Josh": "Undertaker",
+        "Natalie": "Ravenkeeper",
+        "Rohan": "Washerwoman",
+        "Ryan": "Fortune Teller"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-3",
+      "source": "games-sheet",
+      "date": "3/11/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 8,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Aden",
+        "Rohan"
+      ],
+      "lossNames": [
+        "Filippos",
+        "Jasmine",
+        "Josh",
+        "Kate",
+        "Marcus",
+        "Ryan"
+      ],
+      "roles": {
+        "Aden": "Poisoner",
+        "Filippos": "Washerwoman",
+        "Jasmine": "Empath",
+        "Josh": "Mayor",
+        "Kate": "Undertaker",
+        "Marcus": "Virgin",
+        "Rohan": "Imp",
+        "Ryan": "Drunk"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-4",
+      "source": "games-sheet",
+      "date": "5/30/25",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 5,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Alexandra",
+        "Asher",
+        "Rohan"
+      ],
+      "lossNames": [
+        "Aden",
+        "Filippos"
+      ],
+      "roles": {
+        "Aden": "Poisoner",
+        "Alexandra": "Investigator",
+        "Asher": "Empath",
+        "Filippos": "Imp",
+        "Rohan": "Monk"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-5",
+      "source": "games-sheet",
+      "date": "7/20/25",
+      "outcome": "Evil",
+      "finalDay": "0",
+      "storyteller": "Anika",
+      "playerCount": 8,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Rohan",
+        "Ryan"
+      ],
+      "lossNames": [
+        "Aden",
+        "Alexandra",
+        "Asher",
+        "Josh",
+        "Vic",
+        "Ziad"
+      ],
+      "roles": {
+        "Aden": "Recluse",
+        "Alexandra": "Drunk",
+        "Asher": "Saint",
+        "Josh": "Monk",
+        "Rohan": "Baron",
+        "Ryan": "Imp",
+        "Vic": "Empath",
+        "Ziad": "Fortune Teller"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-6",
+      "source": "games-sheet",
+      "date": "8/9/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika, Jasmine",
+      "playerCount": 9,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Natalie",
+        "Vic"
+      ],
+      "lossNames": [
+        "Aden",
+        "Alexandra",
+        "Asher",
+        "Josh",
+        "Kate",
+        "Rohan",
+        "Ryan"
+      ],
+      "roles": {
+        "Aden": "Washerwoman",
+        "Alexandra": "Virgin",
+        "Asher": "Slayer",
+        "Josh": "Butler",
+        "Kate": "Ravenkeeper",
+        "Natalie": "Imp",
+        "Rohan": "Recluse",
+        "Ryan": "Empath",
+        "Vic": "Poisoner"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-7",
+      "source": "games-sheet",
+      "date": "8/17/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Jasmine",
+      "playerCount": 10,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Anika",
+        "Rohan",
+        "Ryan"
+      ],
+      "lossNames": [
+        "Aden",
+        "Alexandra",
+        "Kate",
+        "Vic",
+        "Natalie",
+        "Raj",
+        "Josh"
+      ],
+      "roles": {
+        "Aden": "Chef",
+        "Alexandra": "Fortune Teller",
+        "Anika": "Spy",
+        "Josh": "Washerwoman",
+        "Kate": "Monk",
+        "Natalie": "Virgin",
+        "Raj": "Mayor",
+        "Rohan": "Imp",
+        "Ryan": "Poisoner",
+        "Vic": "Undertaker"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-8",
+      "source": "games-sheet",
+      "date": "8/24/25",
+      "outcome": "Evil",
+      "finalDay": "0",
+      "storyteller": "Anika, Jasmine",
+      "playerCount": 10,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Ryan",
+        "Vic",
+        "Josh"
+      ],
+      "lossNames": [
+        "Aden",
+        "Alexandra",
+        "Asher",
+        "Natalie",
+        "Rohan",
+        "Vincent",
+        "Will"
+      ],
+      "roles": {
+        "Aden": "Fortune Teller",
+        "Alexandra": "Slayer",
+        "Asher": "Undertaker",
+        "Josh": "Imp",
+        "Natalie": "Monk",
+        "Rohan": "Saint",
+        "Ryan": "Spy",
+        "Vic": "Baron",
+        "Vincent": "Investigator",
+        "Will": "Drunk"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-9",
+      "source": "games-sheet",
+      "date": "9/7/25",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika, Amita",
+      "playerCount": 10,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Josh",
+        "Natalie",
+        "Rohan",
+        "Ryan",
+        "Vincent",
+        "Will",
+        "Ziad"
+      ],
+      "lossNames": [
+        "Aden",
+        "Kate",
+        "Raj"
+      ],
+      "roles": {
+        "Aden": "Imp",
+        "Josh": "Fortune Teller",
+        "Kate": "Baron",
+        "Natalie": "Washerwoman",
+        "Raj": "Scarlet Woman",
+        "Rohan": "Virgin",
+        "Ryan": "Saint",
+        "Vincent": "Empath",
+        "Will": "Soldier",
+        "Ziad": "Drunk"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-10",
+      "source": "games-sheet",
+      "date": "9/13/25",
+      "outcome": "Good",
+      "finalDay": "0",
+      "storyteller": "Anika",
+      "playerCount": 7,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Aden",
+        "Alexandra",
+        "Raj",
+        "Rohan",
+        "Ryan"
+      ],
+      "lossNames": [
+        "Will",
+        "Ziad"
+      ],
+      "roles": {
+        "Aden": "Ravenkeeper",
+        "Alexandra": "Chef",
+        "Raj": "Empath",
+        "Rohan": "Fortune Teller",
+        "Ryan": "Monk",
+        "Will": "Imp",
+        "Ziad": "Poisoner"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-11",
+      "source": "games-sheet",
+      "date": "9/13/25",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 7,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Aden",
+        "Alexandra",
+        "Rohan",
+        "Vincent",
+        "Ziad"
+      ],
+      "lossNames": [
+        "Ryan",
+        "Raj"
+      ],
+      "roles": {
+        "Aden": "Undertaker",
+        "Alexandra": "Mayor",
+        "Raj": "Poisoner",
+        "Rohan": "Librarian",
+        "Ryan": "Imp",
+        "Vincent": "Ravenkeeper",
+        "Ziad": "Soldier"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-12",
+      "source": "games-sheet",
+      "date": "10/4/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika, Jasmine",
+      "playerCount": 11,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Alexandra",
+        "Asher",
+        "Vincent"
+      ],
+      "lossNames": [
+        "Aden",
+        "Natalie",
+        "Ren",
+        "Rohan",
+        "Ryan",
+        "Vic",
+        "Ziad",
+        "Tyler"
+      ],
+      "roles": {
+        "Aden": "Virgin",
+        "Alexandra": "Imp",
+        "Asher": "Poisoner",
+        "Natalie": "Recluse",
+        "Ren": "Investigator",
+        "Rohan": "Undertaker",
+        "Ryan": "Fortune Teller",
+        "Vic": "Chef",
+        "Vincent": "Spy",
+        "Ziad": "Washerwoman",
+        "Tyler": "Monk"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-13",
+      "source": "games-sheet",
+      "date": "10/31/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika, Rohan",
+      "playerCount": 13,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "August",
+        "Ryan",
+        "Will",
+        "Ziad"
+      ],
+      "lossNames": [
+        "Aden",
+        "Alexandra",
+        "Asher",
+        "Josh",
+        "Natalie",
+        "Vic",
+        "Vincent",
+        "Carina",
+        "Sara"
+      ],
+      "roles": {
+        "Aden": "Ravenkeeper",
+        "Alexandra": "Saint",
+        "Asher": "Monk",
+        "Josh": "Empath",
+        "Natalie": "Librarian",
+        "Ryan": "Imp",
+        "Vic": "Butler",
+        "Vincent": "Undertaker",
+        "Will": "Scarlet Woman",
+        "Ziad": "Baron",
+        "August": "Poisoner",
+        "Sara": "Slayer",
+        "Carina": "Chef"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-14",
+      "source": "games-sheet",
+      "date": "10/31/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Rohan, Asher",
+      "playerCount": 8,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Carina",
+        "Natalie"
+      ],
+      "lossNames": [
+        "Anika",
+        "Ryan",
+        "Vincent",
+        "Sara",
+        "Will",
+        "Josh"
+      ],
+      "roles": {
+        "Anika": "Mayor",
+        "Josh": "Washerwoman",
+        "Natalie": "Spy",
+        "Ryan": "Librarian",
+        "Vincent": "Drunk",
+        "Will": "Slayer",
+        "Sara": "Empath",
+        "Carina": "Imp"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-15",
+      "source": "games-sheet",
+      "date": "11/14/25",
+      "outcome": "Evil",
+      "finalDay": "0",
+      "storyteller": "Anika, Rohan",
+      "playerCount": 8,
+      "format": "",
+      "script": "Sects & Violets",
+      "winNames": [
+        "Alexandra",
+        "Vic",
+        "Vincent"
+      ],
+      "lossNames": [
+        "Carina",
+        "Natalie",
+        "Ryan",
+        "Will",
+        "Morgan"
+      ],
+      "roles": {
+        "Alexandra": "Klutz",
+        "Natalie": "Dreamer",
+        "Ryan": "Snake Charmer",
+        "Vic": "Fang Gu",
+        "Vincent": "Cerenovus",
+        "Will": "Sweetheart",
+        "Carina": "Artist",
+        "Morgan": "Juggler"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-16",
+      "source": "games-sheet",
+      "date": "11/14/25",
+      "outcome": "Evil",
+      "finalDay": "0",
+      "storyteller": "Anika, Natalie",
+      "playerCount": 7,
+      "format": "",
+      "script": "Sects & Violets",
+      "winNames": [
+        "Rohan",
+        "Will"
+      ],
+      "lossNames": [
+        "Alexandra",
+        "Carina",
+        "Ryan",
+        "Vic",
+        "Vincent"
+      ],
+      "roles": {
+        "Alexandra": "Philosopher",
+        "Rohan": "Pit Hag",
+        "Ryan": "Flowergirl",
+        "Vic": "Sage",
+        "Vincent": "Mathematician",
+        "Will": "Vigormortis",
+        "Carina": "Clockmaker"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-17",
+      "source": "games-sheet",
+      "date": "11/21/25",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 7,
+      "format": "",
+      "script": "Sects & Violets",
+      "winNames": [
+        "Purpleline",
+        "Will",
+        "Vincent",
+        "Spencer",
+        "Ryan"
+      ],
+      "lossNames": [
+        "Carina",
+        "Asher"
+      ],
+      "roles": {
+        "Asher": "No Dashii",
+        "Ryan": "Mathematician",
+        "Vincent": "Snake Charmer",
+        "Will": "Seamstress",
+        "Carina": "Cerenovus",
+        "Purpleline": "Artist",
+        "Spencer": "Flowergirl"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-18",
+      "source": "games-sheet",
+      "date": "12/12/25",
+      "outcome": "Good",
+      "finalDay": "0",
+      "storyteller": "Anika",
+      "playerCount": 12,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Aden",
+        "Alexandra",
+        "Andreas",
+        "Asher",
+        "Filippos",
+        "Natalie",
+        "Vic",
+        "Will",
+        "Ziad"
+      ],
+      "lossNames": [
+        "Josh",
+        "Kate",
+        "Vincent"
+      ],
+      "roles": {
+        "Aden": "Drunk",
+        "Alexandra": "Monk",
+        "Andreas": "Undertaker",
+        "Asher": "Mayor",
+        "Filippos": "Librarian",
+        "Josh": "Poisoner",
+        "Kate": "Spy",
+        "Natalie": "Fortune Teller",
+        "Vic": "Recluse",
+        "Vincent": "Imp",
+        "Will": "Chef",
+        "Ziad": "Investigator"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-19",
+      "source": "games-sheet",
+      "date": "12/27/25",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 7,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Aden",
+        "Tyler"
+      ],
+      "lossNames": [
+        "August",
+        "Vincent",
+        "Rohan",
+        "Raj",
+        "Karen"
+      ],
+      "roles": {
+        "Aden": "Imp",
+        "Raj": "Washerwoman",
+        "Rohan": "Mayor",
+        "Vincent": "Soldier",
+        "Tyler": "Poisoner",
+        "August": "Undertaker",
+        "Karen": "Fortune Teller"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-20",
+      "source": "games-sheet",
+      "date": "1/25/26",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 9,
+      "format": "",
+      "script": "Sects & Violets",
+      "winNames": [
+        "Rohan",
+        "Vic"
+      ],
+      "lossNames": [
+        "Aden",
+        "Alexandra",
+        "Carina",
+        "Filippos",
+        "Josh",
+        "Vincent",
+        "Ziad"
+      ],
+      "roles": {
+        "Aden": "Savant",
+        "Alexandra": "Flowergirl",
+        "Filippos": "Sage",
+        "Josh": "Klutz",
+        "Kate": "Barista",
+        "Rohan": "Vortox",
+        "Vic": "Pit Hag",
+        "Vincent": "Mutant",
+        "Will": "Bone Collector",
+        "Ziad": "Juggler",
+        "Carina": "Philosopher"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-21",
+      "source": "games-sheet",
+      "date": "2/28/26",
+      "outcome": "Good",
+      "finalDay": "0",
+      "storyteller": "Anika, Carina",
+      "playerCount": 11,
+      "format": "",
+      "script": "Sects & Violets",
+      "winNames": [
+        "Filippos",
+        "Josh",
+        "Rohan",
+        "Sara",
+        "Vic",
+        "Vincent",
+        "Rebecca",
+        "Yaran"
+      ],
+      "lossNames": [
+        "Aden",
+        "Alexandra",
+        "Ryan"
+      ],
+      "roles": {
+        "Aden": "Snake Charmer",
+        "Alexandra": "Pit Hag",
+        "Filippos": "Mathematician",
+        "Josh": "Vigormortis",
+        "Rohan": "Savant",
+        "Ryan": "Evil Twin",
+        "Vic": "Oracle",
+        "Vincent": "Flowergirl",
+        "Sara": "Artist",
+        "Rebecca": "Sage",
+        "Yaran": "Juggler"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-22",
+      "source": "games-sheet",
+      "date": "3/13/26",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 7,
+      "format": "",
+      "script": "Trouble Brewing",
+      "winNames": [
+        "Alexandra",
+        "Josh",
+        "Wendell",
+        "Ryan",
+        "Rebecca"
+      ],
+      "lossNames": [
+        "Natalie",
+        "Aden"
+      ],
+      "roles": {
+        "Aden": "Poisoner",
+        "Alexandra": "Mayor",
+        "Josh": "Monk",
+        "Natalie": "Imp",
+        "Ryan": "Fortune Teller",
+        "Rebecca": "Chef",
+        "Wendell": "Washerwoman"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-23",
+      "source": "games-sheet",
+      "date": "4/4/26",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika, Rohan",
+      "playerCount": 14,
+      "format": "",
+      "script": "Sects & Violets",
+      "winNames": [
+        "Carina",
+        "Rebecca",
+        "Wendell",
+        "Ryan",
+        "Yaran"
+      ],
+      "lossNames": [
+        "Alexandra",
+        "Jasmine",
+        "Josh",
+        "Joy",
+        "Kate",
+        "Natalie",
+        "Vic",
+        "Vincent",
+        "Jack"
+      ],
+      "roles": {
+        "Alexandra": "Sage",
+        "Filippos": "Deviant",
+        "Jasmine": "Snake Charmer",
+        "Josh": "Flowergirl",
+        "Kate": "Sweetheart",
+        "Natalie": "Town Crier",
+        "Ryan": "Fang Gu",
+        "Vic": "Philosopher",
+        "Vincent": "Dreamer",
+        "Carina": "Pit Hag",
+        "Morgan": "Barista",
+        "Rebecca": "Witch",
+        "Yaran": "Barber",
+        "Wendell": "Cerenovus",
+        "Joy": "Artist",
+        "Jack": "Clockmaker"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-24",
+      "source": "games-sheet",
+      "date": "4/24/26",
+      "outcome": "Good",
+      "finalDay": "0",
+      "storyteller": "Anika, Chris",
+      "playerCount": 11,
+      "format": "",
+      "script": "Sects & Violets",
+      "winNames": [
+        "August",
+        "Carina",
+        "Izzy",
+        "Jasmine",
+        "Raj",
+        "Rohan",
+        "Ryan",
+        "Vic"
+      ],
+      "lossNames": [
+        "Alexandra",
+        "Natalie",
+        "Jack"
+      ],
+      "roles": {
+        "Alexandra": "Witch",
+        "Jasmine": "Town Crier",
+        "Natalie": "Vortox",
+        "Raj": "Artist",
+        "Rohan": "Snake Charmer",
+        "Ryan": "Savant",
+        "Vic": "Juggler",
+        "August": "Seamstress",
+        "Carina": "Sage",
+        "Jack": "Pit Hag",
+        "Izzy": "Sweetheart"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-25",
+      "source": "games-sheet",
+      "date": "5/2/26",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika, Chris, Rohan",
+      "playerCount": 15,
+      "format": "",
+      "script": "Bad Moon Rising",
+      "winNames": [
+        "Vincent",
+        "Will",
+        "Jasmine",
+        "Spencer"
+      ],
+      "lossNames": [
+        "Andreas",
+        "Asher",
+        "August",
+        "Carina",
+        "Filippos",
+        "Kate",
+        "Natalie",
+        "Ryan",
+        "Vic",
+        "Wendell",
+        "Yaran"
+      ],
+      "roles": {
+        "Andreas": "Courtier",
+        "Asher": "Exorcist",
+        "Filippos": "Moonchild",
+        "Jasmine": "Mastermind",
+        "Kate": "Innkeeper",
+        "Natalie": "Lunatic",
+        "Ryan": "Gossip",
+        "Vic": "Goon",
+        "Vincent": "Shabaloth",
+        "Will": "Godfather",
+        "August": "Fool",
+        "Carina": "Gambler",
+        "Spencer": "Devil's Advocate",
+        "Yaran": "Grandmother",
+        "Wendell": "Chambermaid"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-26",
+      "source": "games-sheet",
+      "date": "5/29/26",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 8,
+      "format": "",
+      "script": "Bad Moon Rising",
+      "winNames": [
+        "Alexandra",
+        "Jasmine",
+        "Kate",
+        "Rohan",
+        "Vincent",
+        "Will"
+      ],
+      "lossNames": [
+        "Chris",
+        "Pavlik"
+      ],
+      "roles": {
+        "Alexandra": "Grandmother",
+        "Jasmine": "Professor",
+        "Kate": "Gossip",
+        "Rohan": "Gambler",
+        "Vincent": "Sailor",
+        "Will": "Tinker",
+        "Chris": "Zombuul",
+        "Pavlik": "Assassin"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-27",
+      "source": "games-sheet",
+      "date": "6/14/26",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika",
+      "playerCount": 7,
+      "format": "",
+      "script": "Bad Moon Rising",
+      "winNames": [
+        "Aden",
+        "Carina"
+      ],
+      "lossNames": [
+        "August",
+        "Chris",
+        "Jasmine",
+        "Natalie",
+        "Pavlik"
+      ],
+      "roles": {
+        "Aden": "Devil's Advocate",
+        "Jasmine": "Gossip",
+        "Natalie": "Courtier",
+        "August": "Innkeeper",
+        "Carina": "Pukka",
+        "Chris": "Sailor",
+        "Pavlik": "Exorcist"
+      },
+      "alignmentOverrides": {}
+    }
+  ]
+}
