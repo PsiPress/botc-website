@@ -1,4 +1,4 @@
-const GAMES_SHEET_JSON = "games-sheet.json";
+const RECORD_CSV = "Blood on the Clocktower - Games Sheet.csv";
 const DEFAULT_ENTRY_PASSCODE = "psip";
 
 const BASE_COLUMNS = [
