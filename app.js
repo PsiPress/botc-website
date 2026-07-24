@@ -145,12 +145,10 @@ async function init() {
       state.games = databaseState.games;
       state.localGames = [];
     } else {
-      const response = await fetch(GAMES_SHEET_JSON);
-      if (!response.ok) throw new Error(`Could not load ${GAMES_SHEET_JSON}`);
-      const workbookState = await response.json();
-      state.headers = workbookState.headers;
+      const gamesSheetState = await loadStaticGamesSheet();
+      state.headers = gamesSheetState.headers;
       state.players = state.headers.slice(9).filter(Boolean);
-      state.games = workbookState.games;
+      state.games = gamesSheetState.games;
       state.localGames = [];
     }
     rebuild();
@@ -159,6 +157,50 @@ async function init() {
     document.body.innerHTML = `<main class="empty-state">Unable to load game data. Run <code>node server.mjs</code> from this folder, then open the site again.</main>`;
     console.error(error);
   }
+}
+
+async function loadStaticGamesSheet() {
+  try {
+    const response = await fetch(GAMES_SHEET_JSON, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Could not load ${GAMES_SHEET_JSON}`);
+    const gamesSheetState = await response.json();
+    if (!Array.isArray(gamesSheetState.headers) || !Array.isArray(gamesSheetState.games)) {
+      throw new Error(`${GAMES_SHEET_JSON} does not contain game data`);
+    }
+    return gamesSheetState;
+  } catch (snapshotError) {
+    const response = await fetch(RECORD_CSV, { cache: "no-store" });
+    if (!response.ok) throw snapshotError;
+    return csvGamesSheetState(await response.text());
+  }
+}
+
+function csvGamesSheetState(text) {
+  const rows = parseCsv(text);
+  const sourceHeaders = (rows[1] || []).map(clean);
+  const playerHeaders = sourceHeaders.slice(8);
+  const games = rows.slice(2)
+    .filter(row => clean(row[0]) && clean(row[1]))
+    .map((row, index) => ({
+      id: `games-sheet-${index}`,
+      source: "games-sheet",
+      date: csvDateToDisplay(row[0]),
+      outcome: clean(row[1]),
+      finalDay: finalDayValue(row[2]),
+      storyteller: clean(row[3]),
+      playerCount: numberOrZero(row[4]),
+      format: "",
+      script: clean(row[5]),
+      winNames: splitNames(row[6]),
+      lossNames: splitNames(row[7]),
+      roles: Object.fromEntries(
+        playerHeaders
+          .map((player, offset) => [player, clean(row[offset + 8])])
+          .filter(([, role]) => role && role.toLowerCase() !== "n/a"),
+      ),
+      alignmentOverrides: {},
+    }));
+  return { headers: BASE_COLUMNS.concat(playerHeaders), games };
 }
 
 function applyRuntimeMode() {
@@ -405,6 +447,17 @@ function rowToGame(row, index) {
 
 function clean(value) {
   return String(value ?? "").trim();
+}
+
+function csvDateToDisplay(value) {
+  const date = clean(value);
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(date);
+  return match ? `${match[1]}/${match[2]}/${match[3].slice(-2)}` : date;
+}
+
+function finalDayValue(value) {
+  const finalDay = clean(value).toLowerCase();
+  return finalDay === "true" ? "1" : finalDay === "false" ? "0" : finalDay;
 }
 
 function numberOrZero(value) {
