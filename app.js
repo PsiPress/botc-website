@@ -1,4 +1,4 @@
-const RECORD_CSV = "Blood on the Clocktower - Master Sheet - Record.csv";
+const RECORD_CSV = "Blood on the Clocktower - Games Sheet.csv";
 const DEFAULT_ENTRY_PASSCODE = "psip";
 
 const BASE_COLUMNS = [
