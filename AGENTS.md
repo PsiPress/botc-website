@@ -2,7 +2,7 @@
 
 ## Project
 
-This repo is a Blood on the Clocktower stats website for Psi Press. The archival source of truth for played games is `Blood on the Clocktower - Games Sheet.xlsx`. The legacy Record and Player Stats CSVs remain as export references.
+This repo is a Blood on the Clocktower stats website for Psi Press. The archival source of truth for played games is `Blood on the Clocktower - Games Sheet.csv`. The legacy Record and Player Stats CSVs remain as export references.
 
 The app is now a small database-backed website, not a static-only page.
 
@@ -26,9 +26,9 @@ Do not use `python3 -m http.server` for normal operation. The browser can render
 
 Current product direction: use the local Node/SQLite full-feature app for now. GitHub Pages is optional/read-only infrastructure for later, not the primary target.
 
-This repo includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, `Blood on the Clocktower - Games Sheet.xlsx`, and `games-sheet.json`. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
+This repo includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, `Blood on the Clocktower - Games Sheet.csv`, and `games-sheet.json`. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
 
-The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to the `games-sheet.json` workbook snapshot, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
+The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to the `games-sheet.json` CSV snapshot, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
 
 To enable Pages in GitHub: Settings -> Pages -> Build and deployment -> Source: GitHub Actions. Expected URL is `https://psipress.github.io/botc-website/`.
 
@@ -40,7 +40,7 @@ Durable app data is stored in SQLite:
 data/botc.sqlite
 ```
 
-`server.mjs` creates this DB and synchronizes Games Sheet rows from `Blood on the Clocktower - Games Sheet.xlsx` whenever its content changes. The server preserves separately entered database games.
+`server.mjs` creates this DB and synchronizes Games Sheet rows from `Blood on the Clocktower - Games Sheet.csv` whenever its content changes. The server preserves separately entered database games.
 
 `data/botc.sqlite` is local runtime state and is intentionally ignored by Git. Browser local storage is no longer used for game persistence; deploy a real backend or back up the SQLite file separately when app-entered games must be retained.
 
@@ -60,8 +60,8 @@ The passcode cannot be changed from the website. To change it, edit `DEFAULT_PAS
 - `styles.css`: visual system and responsive layout.
 - `app.js`: browser state, stat derivation, API calls, CSV export, entry form behavior.
 - `server.mjs`: static file server, SQLite synchronization, `/api/state`, `/api/unlock`, `/api/games`.
-- `games-sheet.mjs`: dependency-free workbook reader and normalizer shared by the server and snapshot generator.
-- `games-sheet.json`: committed browser-readable snapshot of the Games Sheet for read-only Pages fallback; regenerate it with `node generate-games-sheet-json.mjs` after changing the workbook.
+- `games-sheet.mjs`: dependency-free CSV reader and normalizer shared by the server and snapshot generator.
+- `games-sheet.json`: committed browser-readable snapshot of the Games Sheet for read-only Pages fallback; regenerate it with `node generate-games-sheet-json.mjs` after changing the CSV.
 - `README.md`: human developer handoff with run instructions, API notes, persistence details, and development guidance.
 - `.github/workflows/pages.yml`: deploys the read-only static GitHub Pages site.
 

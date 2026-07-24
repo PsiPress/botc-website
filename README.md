@@ -30,7 +30,7 @@ Use the local Node server when you need passcode-protected adding/deleting games
 
 ### Optional Read-Only GitHub Pages Site
 
-This repo includes a GitHub Actions workflow for free GitHub Pages hosting, but that is not the primary deployment target right now. GitHub Pages can only serve a static read-only version of the site: it displays stats from the committed `games-sheet.json` snapshot generated from the Games Sheet workbook, but it cannot add or delete games because GitHub Pages does not run the Node/SQLite backend.
+This repo includes a GitHub Actions workflow for free GitHub Pages hosting, but that is not the primary deployment target right now. GitHub Pages can only serve a static read-only version of the site: it displays stats from the committed `games-sheet.json` snapshot generated from the Games Sheet CSV, but it cannot add or delete games because GitHub Pages does not run the Node/SQLite backend.
 
 If this becomes useful later:
 
@@ -55,8 +55,8 @@ server.mjs                                      Static server, SQLite setup, API
 data/botc.sqlite                                Durable SQLite database
 .github/workflows/pages.yml                     GitHub Pages static deployment
 .nojekyll                                       Keeps GitHub Pages from applying Jekyll processing
-Blood on the Clocktower - Games Sheet.xlsx             Archival source of truth
-games-sheet.json                                     Read-only browser snapshot of the workbook
+Blood on the Clocktower - Games Sheet.csv              Archival source of truth
+games-sheet.json                                      Read-only browser snapshot of the CSV
 Blood on the Clocktower - Master Sheet - Record.csv   Legacy export reference
 Blood on the Clocktower - Master Sheet - Player Stats.csv
 AGENTS.md                                       Agent-focused implementation handoff
@@ -70,11 +70,11 @@ The durable source of truth is:
 data/botc.sqlite
 ```
 
-On startup, `server.mjs` reads `Blood on the Clocktower - Games Sheet.xlsx` and synchronizes its games into SQLite whenever the workbook changes. New database entries remain intact. The committed `games-sheet.json` is the matching read-only snapshot used when the API is unavailable and is refreshed during workbook synchronization.
+On startup, `server.mjs` reads `Blood on the Clocktower - Games Sheet.csv` and synchronizes its games into SQLite whenever the CSV changes. New database entries remain intact. The committed `games-sheet.json` is the matching read-only snapshot used when the API is unavailable and is refreshed during CSV synchronization.
 
 New game entries are saved to SQLite through `POST /api/games`, and past games can be corrected through `PUT /api/games/:id`. They are not saved to browser local storage. `data/botc.sqlite` is local runtime state, so back it up separately or deploy a real backend when app-entered games must be retained.
 
-The legacy CSV files remain useful as export-format references. Update the Games Sheet workbook and run `node generate-games-sheet-json.mjs` before committing when changing the archival game ledger; ongoing app-entered games are stored in SQLite.
+The legacy CSV files remain useful as export-format references. Update the Games Sheet CSV and run `node generate-games-sheet-json.mjs` before committing when changing the archival game ledger; ongoing app-entered games are stored in SQLite.
 
 ## Passcode-Protected Entry
 

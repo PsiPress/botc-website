@@ -9,7 +9,7 @@ import { gamesSheetState, readGamesSheet } from "./games-sheet.mjs";
 const ROOT = fileURLToPath(new URL(".", import.meta.url));
 const DB_DIR = join(ROOT, "data");
 const DB_PATH = join(DB_DIR, "botc.sqlite");
-const GAMES_SHEET = "Blood on the Clocktower - Games Sheet.xlsx";
+const GAMES_SHEET = "Blood on the Clocktower - Games Sheet.csv";
 const GAMES_SHEET_JSON = "games-sheet.json";
 const DEFAULT_PASSCODE = "psip";
 const PORT = Number(process.env.PORT || 5173);
@@ -22,7 +22,6 @@ const MIME_TYPES = {
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
   ".svg": "image/svg+xml",
-  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 mkdirSync(DB_DIR, { recursive: true });
@@ -75,8 +74,8 @@ function setupDatabase() {
 }
 
 function synchronizeGamesSheet() {
-  const workbook = readGamesSheet(join(ROOT, GAMES_SHEET));
-  writeFileSync(join(ROOT, GAMES_SHEET_JSON), `${JSON.stringify(gamesSheetState(workbook), null, 2)}\n`);
+  const gamesSheet = readGamesSheet(join(ROOT, GAMES_SHEET));
+  writeFileSync(join(ROOT, GAMES_SHEET_JSON), `${JSON.stringify(gamesSheetState(gamesSheet), null, 2)}\n`);
   const contentHash = createHash("sha256").update(readFileSync(join(ROOT, GAMES_SHEET))).digest("hex");
   const previous = db.prepare("SELECT content_hash FROM import_metadata WHERE source = ?").get("games-sheet");
   const oldRecordRows = db.prepare("SELECT COUNT(*) AS count FROM games WHERE source = 'record'").get().count;
@@ -85,7 +84,7 @@ function synchronizeGamesSheet() {
   db.exec("BEGIN");
   try {
     db.prepare("DELETE FROM games WHERE source IN ('record', 'games-sheet')").run();
-    seedGamesSheet(workbook);
+    seedGamesSheet(gamesSheet);
     db.prepare(`INSERT OR REPLACE INTO import_metadata (source, content_hash) VALUES (?, ?)`).run("games-sheet", contentHash);
     db.exec("COMMIT");
   } catch (error) {
@@ -94,7 +93,7 @@ function synchronizeGamesSheet() {
   }
 }
 
-function seedGamesSheet(workbook) {
+function seedGamesSheet(gamesSheet) {
   const insert = db.prepare(`
     INSERT INTO games (
       id, source, date, outcome, final_day, storyteller, player_count, format, script,
@@ -103,7 +102,7 @@ function seedGamesSheet(workbook) {
   `);
   const now = new Date().toISOString();
 
-  gamesSheetState(workbook).games.forEach(game => {
+  gamesSheetState(gamesSheet).games.forEach(game => {
     insert.run(
       game.id, game.source, game.date, game.outcome, game.finalDay, game.storyteller,
       game.playerCount, game.format, game.script, JSON.stringify(game.winNames),
