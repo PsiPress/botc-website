@@ -145,9 +145,7 @@ async function init() {
       state.games = databaseState.games;
       state.localGames = [];
     } else {
-      const response = await fetch(GAMES_SHEET_JSON);
-      if (!response.ok) throw new Error(`Could not load ${GAMES_SHEET_JSON}`);
-      const gamesSheetState = await response.json();
+      const gamesSheetState = await loadStaticGamesSheet();
       state.headers = gamesSheetState.headers;
       state.players = state.headers.slice(9).filter(Boolean);
       state.games = gamesSheetState.games;
@@ -156,7 +154,7 @@ async function init() {
     rebuild();
     applyRuntimeMode();
   } catch (error) {
-    document.body.innerHTML = `<main class="empty-state">Unable to load game data. Run <code>node server.mjs</code> from this folder, then open the site again.</main>`;
+    document.body.innerHTML = `<main class="empty-state">Unable to load game data. Confirm that <code>${GAMES_SHEET_JSON}</code> or <code>${RECORD_CSV}</code> was deployed with the site, then reload the page.</main>`;
     console.error(error);
   }
 }
