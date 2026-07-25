@@ -1,232 +1,66 @@
 # botc-website
 
-Psi Press Blood on the Clocktower player stats website.
-
-This project displays player records, game history, and exported stats for a local Clocktower group. It also includes a passcode-protected game entry flow for adding new results.
+Psi Press Blood on the Clocktower player stats website. It uses plain HTML, CSS, browser JavaScript, PHP, and SQLite—Node.js and npm are not required.
 
 ## Quick Start
 
-### Local Full-Feature Site
-
-This is the primary way to run the app for now. It supports viewing stats, adding games, deleting accidental entries, and persisting data to SQLite.
-
-Requirements:
-
-- Node.js with the built-in `node:sqlite` module available. This was developed with Node `v25.8.0`.
-
-Run the site:
+Requirements: PHP 8.1+ with the PDO SQLite extension.
 
 ```sh
-node server.mjs
+php -S 127.0.0.1:5173
 ```
 
-Open:
+Open <http://127.0.0.1:5173/>. The PHP development server is for local use; deploy the same files to a PHP-capable web host for an always-online site.
 
-```text
-http://127.0.0.1:5173/
-```
+The round **ST** button opens the password-protected game-entry flow. The current password is `psip`. New, edited, and deleted games are stored durably in `data/botc.sqlite`.
 
-Use the local Node server when you need passcode-protected adding/deleting games. Do not expect those write features to work on GitHub Pages.
+## Deployment
 
-### Optional Read-Only GitHub Pages Site
+Upload the repository files to a web host with PHP and PDO SQLite enabled. Ensure PHP can write to `data/` (the application creates the directory and database when necessary). Point the site's document root at this directory and serve `index.html` normally. No URL rewriting, build command, package installation, or long-running application process is needed: the frontend calls `api.php` directly.
 
-This repo includes a GitHub Actions workflow for free GitHub Pages hosting, but that is not the primary deployment target right now. GitHub Pages can only serve a static read-only version of the site: it displays stats from the committed `games-sheet.json` snapshot generated from the Games Sheet CSV, but it cannot add or delete games because GitHub Pages does not run the Node/SQLite backend.
+For production:
 
-If this becomes useful later:
+- Use HTTPS so the password and game data are encrypted in transit.
+- Change `DEFAULT_PASSCODE` in `api.php` and `DEFAULT_ENTRY_PASSCODE` in `app.js` together before deployment.
+- Prevent direct web access to `data/` in the host's control panel, or place an equivalent web-server rule around it.
+- Back up `data/botc.sqlite`; it contains games entered through the website.
 
-1. Go to the repo's `Settings` tab.
-2. Open `Pages`.
-3. Under `Build and deployment`, set `Source` to `GitHub Actions`.
-4. Push to `main`, or manually run the `Deploy GitHub Pages` workflow from the `Actions` tab.
-
-Expected public URL:
-
-```text
-https://psipress.github.io/botc-website/
-```
+GitHub Pages remains an optional **read-only** deployment because Pages cannot execute PHP. Its workflow publishes the frontend and committed `games-sheet.json` snapshot; it intentionally cannot accept game changes.
 
 ## Repository Layout
 
 ```text
-index.html                                      Frontend shell and dialogs
-styles.css                                      Layout, visual design, responsive behavior
-app.js                                          Browser state, stat derivation, CSV export, form logic
-server.mjs                                      Static server, SQLite setup, API endpoints
-data/botc.sqlite                                Durable SQLite database
-.github/workflows/pages.yml                     GitHub Pages static deployment
-.nojekyll                                       Keeps GitHub Pages from applying Jekyll processing
-Blood on the Clocktower - Games Sheet.csv              Archival source of truth
-games-sheet.json                                      Read-only browser snapshot of the CSV
-Blood on the Clocktower - Master Sheet - Record.csv   Legacy export reference
-Blood on the Clocktower - Master Sheet - Player Stats.csv
-AGENTS.md                                       Agent-focused implementation handoff
+index.html                              Frontend shell and dialogs
+styles.css                              Visual design and responsive layout
+app.js                                  Browser state, stats, exports, and forms
+api.php                                 PHP/SQLite API and Games Sheet importer
+data/botc.sqlite                        Runtime database (ignored by Git)
+Blood on the Clocktower - Games Sheet.csv  Archival game source
+games-sheet.json                       Read-only Pages snapshot
+.github/workflows/pages.yml             Optional static Pages deployment
+AGENTS.md                               Implementation handoff
 ```
 
-## Data And Persistence
+## Data and Persistence
 
-The durable source of truth is:
+On each API request, `api.php` creates the database schema if needed and checks the CSV content hash. When the archival Games Sheet changes, its rows are re-imported while separately entered website games are preserved. The frontend falls back to `games-sheet.json` in read-only environments where PHP is unavailable.
 
-```text
-data/botc.sqlite
-```
+The following password-protected operations retain the existing UI and behavior:
 
-On startup, `server.mjs` reads `Blood on the Clocktower - Games Sheet.csv` and synchronizes its games into SQLite whenever the CSV changes. New database entries remain intact. The committed `games-sheet.json` is the matching read-only snapshot used when the API is unavailable and is refreshed during CSV synchronization.
+- `POST api.php?route=unlock` validates `{ "passcode": "..." }`.
+- `POST api.php?route=games` adds a game.
+- `PUT api.php?route=games&id=<id>` edits a game.
+- `DELETE api.php?route=games&id=<id>` deletes a game.
+- `GET api.php?route=state` returns all normalized game data and headers.
 
-New game entries are saved to SQLite through `POST /api/games`, and past games can be corrected through `PUT /api/games/:id`. They are not saved to browser local storage. `data/botc.sqlite` is local runtime state, so back it up separately or deploy a real backend when app-entered games must be retained.
+Game entry supports new players and roles, automatic result suggestions, manual alignment/result overrides, and existing-game correction. Player statistics, game details, CSV exports, data QA, navigation, and responsive visual design remain frontend features in `app.js` and are unchanged by the backend migration.
 
-The legacy CSV files remain useful as export-format references. Update the Games Sheet CSV and run `node generate-games-sheet-json.mjs` before committing when changing the archival game ledger; ongoing app-entered games are stored in SQLite.
-
-## Passcode-Protected Entry
-
-The round `ST` button in the bottom-right opens the game entry flow.
-
-Default/current passcode:
-
-```text
-psip
-```
-
-Adding games requires the current passcode. The passcode cannot be changed from the website. To change it, edit `DEFAULT_PASSCODE` in `server.mjs` and `DEFAULT_ENTRY_PASSCODE` in `app.js`, then restart the server.
-
-## Main Features
-
-- Minimal Overview page with links to Players and Games.
-- Players tab with searchable/sortable player stats and row-click detail popups.
-- Games tab with the game ledger, row-click detail popups, script filtering, CSV export, and data QA notes.
-- Passcode-protected entry form for new games.
-- Passcode-protected game deletion from the bottom of each game detail popup for correcting accidental entries.
-- New player and new role support from the entry form.
-- Player result fields auto-populate from game outcome plus player alignment, while still allowing manual edits.
-- CSV exports for updated Record and Player Stats sheets.
-
-## Stat Logic
-
-The frontend derives player stats from game rows returned by `/api/state`.
-
-Current behavior:
-
-- Normal games count players with non-`n/a` role cells.
-- Traveler roles are excluded from normal game totals and counted separately as good/evil travels.
-- Overall wins/losses come from each game's `winNames` and `lossNames`.
-- Good/evil team games are inferred from role alignment and game outcome.
-- Existing traveler rows with missing Win/Loss membership use the `SEEDED_TRAVELER_ALIGNMENT` map in `app.js`.
-- Data inconsistencies, such as a role cell without Win/Loss membership, are surfaced in the Games tab's Data QA panel.
-
-If you change role alignment rules or add scripts with new roles, update the role sets in `app.js`.
-
-## API Endpoints
-
-`GET /api/state`
-
-Returns:
-
-- normalized Games Sheet headers
-- all Games Sheet games plus durable SQLite entries
-- storage mode metadata
-
-`POST /api/unlock`
-
-Request:
-
-```json
-{ "passcode": "psip" }
-```
-
-Returns `200` for a valid passcode and `401` otherwise.
-
-`POST /api/games`
-
-Request:
-
-```json
-{
-  "passcode": "psip",
-  "game": {
-    "date": "6/13/26",
-    "outcome": "Good",
-    "finalDay": "TRUE",
-    "storyteller": "Anika",
-    "playerCount": 7,
-    "format": "Online",
-    "script": "Trouble Brewing",
-    "winNames": ["Aden"],
-    "lossNames": ["Rohan"],
-    "roles": { "Aden": "Washerwoman", "Rohan": "Imp" },
-    "alignmentOverrides": { "Aden": "Good", "Rohan": "Evil" }
-  }
-}
-```
-
-Inserts a durable game row in SQLite.
-
-`PUT /api/games/:id`
-
-Request:
-
-```json
-{
-  "passcode": "psip",
-  "game": {
-    "date": "6/13/26",
-    "outcome": "Evil",
-    "finalDay": "FALSE",
-    "storyteller": "Anika",
-    "playerCount": 7,
-    "format": "Online",
-    "script": "Trouble Brewing",
-    "winNames": ["Rohan"],
-    "lossNames": ["Aden"],
-    "roles": { "Aden": "Washerwoman", "Rohan": "Imp" },
-    "alignmentOverrides": { "Aden": "Good", "Rohan": "Evil" }
-  }
-}
-```
-
-Updates an existing SQLite game row after validating the passcode.
-
-`DELETE /api/games/:id`
-
-Request:
-
-```json
-{ "passcode": "psip" }
-```
-
-Deletes a game row from SQLite after validating the passcode.
-
-## Development Notes
-
-There is no npm package setup currently. The app uses plain HTML, CSS, browser JavaScript, and Node built-ins.
-
-Useful checks:
+## Development Checks
 
 ```sh
-node --check app.js
-node --check server.mjs
+php -l api.php
+php -S 127.0.0.1:5173
+curl 'http://127.0.0.1:5173/api.php?route=state'
 ```
 
-When editing the UI:
-
-- Keep Overview minimal; the leaderboard was intentionally removed.
-- Keep Players and Games focused on data review and export.
-- Make sure mobile layouts do not clip text or buttons.
-- Preserve the `ST` entry button and passcode gate for adding games.
-- Keep game editing and deletion password-protected and scoped to the game detail popup.
-- Do not add a website control for changing the passcode unless that product decision changes.
-- Keep game entry ergonomic for new players and new roles; both should be addable without editing code or the database manually.
-
-When editing persistence:
-
-- Avoid browser-only storage for game results.
-- Keep `data/botc.sqlite` as the durable repo-backed data store unless the architecture is intentionally changed.
-- If the DB schema changes, add a migration path or document the rebuild procedure clearly.
-
-## Handoff Notes
-
-For deeper implementation context, read:
-
-```text
-AGENTS.md
-```
-
-That file is intended for future coding agents and should be updated alongside meaningful architecture, persistence, data model, or UI behavior changes.
+When changing the archival CSV, start the PHP site and load the state endpoint to synchronize SQLite. Also update the committed `games-sheet.json` snapshot if the read-only GitHub Pages copy must reflect that change.

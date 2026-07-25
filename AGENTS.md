@@ -11,7 +11,7 @@ The app is now a small database-backed website, not a static-only page.
 Use:
 
 ```sh
-node server.mjs
+php -S 127.0.0.1:5173
 ```
 
 Then open:
@@ -20,15 +20,15 @@ Then open:
 http://127.0.0.1:5173/
 ```
 
-Do not use `python3 -m http.server` for normal operation. The browser can render that way, but new game entries will not be durable because the `/api/*` routes will be missing.
+Do not use `python3 -m http.server` for normal operation. The browser can render that way, but new game entries will not be durable because `api.php` will not execute.
 
 ## GitHub Pages
 
-Current product direction: use the local Node/SQLite full-feature app for now. GitHub Pages is optional/read-only infrastructure for later, not the primary target.
+Current product direction: use the local PHP/SQLite full-feature app for now. GitHub Pages is optional/read-only infrastructure for later, not the primary target.
 
-This repo includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, `Blood on the Clocktower - Games Sheet.csv`, and `games-sheet.json`. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
+This repo includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, `Blood on the Clocktower - Games Sheet.csv`, and `games-sheet.json`. It intentionally does not deploy `api.php` or `data/botc.sqlite`.
 
-The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to the `games-sheet.json` CSV snapshot, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
+The GitHub Pages site is read-only. When `api.php?route=state` is unavailable, `app.js` falls back to the `games-sheet.json` CSV snapshot, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `php -S 127.0.0.1:5173` locally or deploying a real backend elsewhere.
 
 To enable Pages in GitHub: Settings -> Pages -> Build and deployment -> Source: GitHub Actions. Expected URL is `https://psipress.github.io/botc-website/`.
 
@@ -40,7 +40,7 @@ Durable app data is stored in SQLite:
 data/botc.sqlite
 ```
 
-`server.mjs` creates this DB and synchronizes Games Sheet rows from `Blood on the Clocktower - Games Sheet.csv` whenever its content changes. The server preserves separately entered database games.
+`api.php` creates this DB and synchronizes Games Sheet rows from `Blood on the Clocktower - Games Sheet.csv` whenever its content changes. The server preserves separately entered database games.
 
 `data/botc.sqlite` is local runtime state and is intentionally ignored by Git. Browser local storage is no longer used for game persistence; deploy a real backend or back up the SQLite file separately when app-entered games must be retained.
 
@@ -52,16 +52,15 @@ Adding a game requires the current passcode. The default/current passcode after 
 psip
 ```
 
-The passcode cannot be changed from the website. To change it, edit `DEFAULT_PASSCODE` in `server.mjs` and `DEFAULT_ENTRY_PASSCODE` in `app.js`, then restart the server. An older SQLite `settings.entry_passcode` value may exist in existing databases, but the current server code does not use it.
+The passcode cannot be changed from the website. To change it, edit `DEFAULT_PASSCODE` in `api.php` and `DEFAULT_ENTRY_PASSCODE` in `app.js`, then restart the server. An older SQLite `settings.entry_passcode` value may exist in existing databases, but the current server code does not use it.
 
 ## Frontend Structure
 
 - `index.html`: app shell, tabs, welcome Overview, Players table, Games ledger, player stats dialog, passcode dialog, entry dialog.
 - `styles.css`: visual system and responsive layout.
 - `app.js`: browser state, stat derivation, API calls, CSV export, entry form behavior.
-- `server.mjs`: static file server, SQLite synchronization, `/api/state`, `/api/unlock`, `/api/games`.
-- `games-sheet.mjs`: dependency-free CSV reader and normalizer shared by the server and snapshot generator.
-- `games-sheet.json`: committed browser-readable snapshot of the Games Sheet for read-only Pages fallback; regenerate it with `node generate-games-sheet-json.mjs` after changing the CSV.
+- `api.php`: PHP/SQLite API, schema setup, Games Sheet synchronization, and password-protected game writes.
+- `games-sheet.json`: committed browser-readable snapshot of the Games Sheet for read-only Pages fallback; update it after changing the CSV when the read-only Pages copy must change.
 - `README.md`: human developer handoff with run instructions, API notes, persistence details, and development guidance.
 - `.github/workflows/pages.yml`: deploys the read-only static GitHub Pages site.
 
@@ -71,7 +70,7 @@ Player table rows are clickable and keyboard-accessible. Clicking any row opens 
 
 ## Stat Logic
 
-Stats are derived in `app.js` from Games Sheet rows supplied by `/api/state` (or `games-sheet.json` when read-only):
+Stats are derived in `app.js` from Games Sheet rows supplied by `api.php?route=state` (or `games-sheet.json` when read-only):
 
 - Normal games count players with non-`n/a` roles, excluding traveler roles.
 - Overall wins/losses come from each game's `winNames` and `lossNames`.
@@ -94,41 +93,41 @@ New role names are supported by free-typing in a role row or by using the `New r
 
 Participant result fields store real `Win`/`Loss` values. They auto-populate from game outcome plus resolved player alignment until a user manually edits that row's result field.
 
-Saving a game posts to `/api/games` with the active passcode. If the server is unavailable or the passcode is wrong, the game is not saved.
+Saving a game posts to `api.php?route=games` with the active passcode. If the server is unavailable or the passcode is wrong, the game is not saved.
 
-Editing a game starts from that game's detail popup. The `Edit game` button sits next to `Delete game`, reuses the same entry dialog, preserves the existing game id, and saves through `PUT /api/games/:id` with the active passcode.
+Editing a game starts from that game's detail popup. The `Edit game` button sits next to `Delete game`, reuses the same entry dialog, preserves the existing game id, and saves through `PUT api.php?route=games&id=<id>` with the active passcode.
 
 ## API Notes
 
-`GET /api/state`
+`GET api.php?route=state`
 
 Returns record headers and all games from SQLite.
 
-`POST /api/unlock`
+`POST api.php?route=unlock`
 
 Body: `{ "passcode": "..." }`. Returns `200` for valid passcode, `401` otherwise.
 
-`POST /api/games`
+`POST api.php?route=games`
 
 Body: `{ "passcode": "...", "game": { ... } }`. Inserts a durable game row in SQLite.
 
-`PUT /api/games/:id`
+`PUT api.php?route=games&id=<id>`
 
 Body: `{ "passcode": "...", "game": { ... } }`. Updates an existing SQLite game row after passcode validation. The server preserves the row id and source, replacing date/outcome/storyteller/player count/format/script/winners/losers/roles/alignment overrides.
 
-`DELETE /api/games/:id`
+`DELETE api.php?route=games&id=<id>`
 
 Body: `{ "passcode": "..." }`. Deletes a game row from SQLite after passcode validation. The Games tab exposes deletion only at the bottom of each game detail popup, followed by a passcode confirmation dialog.
 
 ## Verification Already Done
 
-- `node --check app.js`
-- `node --check server.mjs`
+- `php -l api.php`
+- PHP API create/edit/delete lifecycle checks
 - API state returned 27 seeded games.
 - Correct passcode unlock succeeded.
 - Wrong passcode unlock failed.
 - Controlled `/api/games` write/delete test inserted a row and restored DB count to 27.
-- Controlled `/api/games` create/edit/delete test inserted a temp row, updated it through `PUT /api/games/:id`, deleted it, and restored DB count to 27.
+- Controlled `/api/games` create/edit/delete test inserted a temp row, updated it through `PUT api.php?route=games&id=<id>`, deleted it, and restored DB count to 27.
 - Wrong passcode write test returned `401` and left DB count unchanged.
 - Passcode was changed by user request from `psipress27` to `psip`.
 - Website passcode-changing controls and the `/api/passcode` endpoint were removed by user request; passcode changes are code-only now.
@@ -158,3 +157,7 @@ Keep this file updated whenever implementation decisions, data flow, persistence
 ## Website Reorganization (2026-07)
 
 The primary navigation is now organized as Home, About, Roster, Awards, Games, Statistics, Events, and Gallery. Roster presents up to 16 active-player cards with image placeholders and profile buttons; profiles reuse the complete player-stat dialog. Awards, events, and gallery intentionally contain polished placeholder space that can be filled with final copy, winner lists, event metadata, and photography later. The Statistics page adds player and character record lookup controls derived from the live game data. The Games page retains the durable game ledger and identifies the Games Sheet as its archival source in the UI.
+
+## PHP Backend Migration (2026-07)
+
+The application no longer requires Node.js. `api.php` now provides the SQLite state, unlock, create, edit, and delete operations through query-string routes that work without web-server rewrite rules. Run locally with `php -S 127.0.0.1:5173`; deploy to a PHP host with PDO SQLite and a writable `data/` directory for password-protected online updates. GitHub Pages remains read-only because it cannot execute PHP.

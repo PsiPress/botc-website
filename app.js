@@ -156,7 +156,7 @@ async function init() {
     rebuild();
     applyRuntimeMode();
   } catch (error) {
-    document.body.innerHTML = `<main class="empty-state">Unable to load game data. Run <code>node server.mjs</code> from this folder, then open the site again.</main>`;
+    document.body.innerHTML = `<main class="empty-state">Unable to load game data. Run <code>php -S 127.0.0.1:5173</code> from this folder, then open the site again.</main>`;
     console.error(error);
   }
 }
@@ -214,7 +214,7 @@ function applyRuntimeMode() {
 
 async function loadDatabaseState() {
   try {
-    const response = await fetch("/api/state", { cache: "no-store" });
+    const response = await fetch("api.php?route=state", { cache: "no-store" });
     if (!response.ok) return null;
     return await response.json();
   } catch {
@@ -943,7 +943,7 @@ async function deleteSelectedGame() {
   }
 
   try {
-    const response = await fetch(`/api/games/${encodeURIComponent(gameId)}`, {
+    const response = await fetch(`api.php?route=games&id=${encodeURIComponent(gameId)}`, {
       method: "DELETE",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ passcode }),
@@ -1055,7 +1055,7 @@ async function submitPasscode() {
 
 async function verifyServerPasscode(passcode) {
   try {
-    const response = await fetch("/api/unlock", {
+    const response = await fetch("api.php?route=unlock", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ passcode }),
@@ -1285,7 +1285,7 @@ async function saveEntry() {
   if (state.databaseAvailable) {
     try {
       const isEditing = Boolean(state.editingGameId);
-      const response = await fetch(isEditing ? `/api/games/${encodeURIComponent(state.editingGameId)}` : "/api/games", {
+      const response = await fetch(isEditing ? `api.php?route=games&id=${encodeURIComponent(state.editingGameId)}` : "api.php?route=games", {
         method: isEditing ? "PUT" : "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ passcode: state.activePasscode, game }),
@@ -1308,7 +1308,7 @@ async function saveEntry() {
       return;
     }
   } else {
-    els.entryMessage.textContent = "Start node server.mjs to save to the repo database.";
+    els.entryMessage.textContent = "Start the PHP server to save to the website database.";
     els.entryMessage.classList.add("error");
     return;
   }
