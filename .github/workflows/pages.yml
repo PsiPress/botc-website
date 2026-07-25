@@ -13,7 +13,9 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  # A newer site revision should replace an older deployment instead of reaching
+  # deploy-pages while the older revision still owns the Pages deployment slot.
+  cancel-in-progress: true
 
 jobs:
   deploy:
