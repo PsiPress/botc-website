@@ -235,8 +235,6 @@ function cacheElements() {
     infoDialogClose: document.querySelector("#infoDialogClose"),
     metricGames: document.querySelector("#metricGames"),
     metricPlayers: document.querySelector("#metricPlayers"),
-    metricGoodWins: document.querySelector("#metricGoodWins"),
-    metricLatest: document.querySelector("#metricLatest"),
     playerSearch: document.querySelector("#playerSearch"),
     playerSort: document.querySelector("#playerSort"),
     playerTableBody: document.querySelector("#playerTableBody"),
@@ -598,13 +596,8 @@ function formatPercent(value, digits = 0) {
 function renderSummary() {
   const games = getAllGames();
   const activePlayers = state.stats.filter(stat => stat.games + stat.travelsGood + stat.travelsEvil > 0).length;
-  const goodWins = games.filter(game => game.outcome === "Good").length;
-  const latest = [...games].sort((a, b) => compareDates(b.date, a.date))[0];
-
   els.metricGames.textContent = String(games.length);
   els.metricPlayers.textContent = String(activePlayers);
-  els.metricGoodWins.textContent = `${goodWins}-${games.length - goodWins}`;
-  els.metricLatest.textContent = latest ? latest.date : "--";
 }
 
 function renderPlayerTable() {
