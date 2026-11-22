@@ -2,9 +2,15 @@
 
 ## Project
 
-This repo is a Blood on the Clocktower stats website for Psi Press. The archival source of truth for played games is `Blood on the Clocktower - Games Sheet.csv`. The legacy Record and Player Stats CSVs remain as export references.
+This repo is a Blood on the Clocktower stats website for Psi Press. The archival source of truth for played games is `Blood on the Clocktower - Games Sheet.csv`.
 
-The app is now a small database-backed website, not a static-only page.
+As of 2026-11 the CSV was regenerated from the `Games` tab of the club's "Master Sheet with Elo" workbook (30 games, 38 player columns ending in `Gack`), with the `Format` column (In-Person / Online) merged in from that workbook's `Record` tab. The CSV therefore uses the Record layout: `date, Outcome, Final Day, Storyteller, Player Count, Format, Script, Win, Loss, <players...>`. `games-sheet.mjs` and `app.js` also still accept a straight export of the Games tab (no `Format` column), so a future re-export can be dropped in as-is.
+
+Player columns must stay in the spreadsheet's column order: the rating model uses that order ("slot") to break ties, to decide which of two same-day debuts is newer, and to name duos (`Will + Ziad`, lower slot first).
+
+The app is a small database-backed website, not a static-only page.
+
+`README.md` is intentionally just the link to the live site (`https://psipress.github.io/botc-website/`). Developer notes live in this file.
 
 ## Run Command
 
@@ -24,13 +30,13 @@ Do not use `python3 -m http.server` for normal operation. The browser can render
 
 ## GitHub Pages
 
-Current product direction: use the local Node/SQLite full-feature app for now. GitHub Pages is optional/read-only infrastructure for later, not the primary target.
+Current product direction: use the local Node/SQLite full-feature app for now. GitHub Pages is optional/read-only infrastructure.
 
-This repo includes `.github/workflows/pages.yml` for free GitHub Pages hosting. Pages deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `.nojekyll`, `Blood on the Clocktower - Games Sheet.csv`, and `games-sheet.json`. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`.
+`.github/workflows/pages.yml` deploys only static assets from `_site`: `index.html`, `styles.css`, `app.js`, `ratings.js`, `.nojekyll`, `Blood on the Clocktower - Games Sheet.csv`, and `games-sheet.json`. It intentionally does not deploy `server.mjs` or `data/botc.sqlite`. Any new browser module must be added to that copy step.
 
-The Pages workflow uses a single concurrency group and cancels an older in-progress run when a newer commit starts. This prevents overlapping runs from competing for GitHub Pages' single deployment slot.
+The Pages workflow uses a single concurrency group and cancels an older in-progress run when a newer commit starts, so overlapping runs do not compete for the single Pages deployment slot.
 
-The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to the `games-sheet.json` CSV snapshot, hides the `ST` entry button, and omits game deletion from game detail popups. Adding/deleting games still requires running `node server.mjs` locally or deploying a real backend elsewhere.
+The GitHub Pages site is read-only. When `/api/state` is unavailable, `app.js` falls back to `games-sheet.json` (then to the CSV), hides the `ST` entry button, and omits Edit/Delete from game popups.
 
 To enable Pages in GitHub: Settings -> Pages -> Build and deployment -> Source: GitHub Actions. Expected URL is `https://psipress.github.io/botc-website/`.
 
@@ -42,110 +48,103 @@ Durable app data is stored in SQLite:
 data/botc.sqlite
 ```
 
-`server.mjs` creates this DB and synchronizes Games Sheet rows from `Blood on the Clocktower - Games Sheet.csv` whenever its content changes. The server preserves separately entered database games.
+`server.mjs` creates this DB and synchronizes Games Sheet rows from the CSV whenever its content changes (it also rewrites `games-sheet.json`). The server preserves separately entered database games.
 
-`data/botc.sqlite` is local runtime state and is intentionally ignored by Git. Browser local storage is no longer used for game persistence; deploy a real backend or back up the SQLite file separately when app-entered games must be retained.
+`data/botc.sqlite` is local runtime state and is ignored by Git. Back it up separately when app-entered games must be retained. After changing the CSV without running the server, regenerate the snapshot with `node generate-games-sheet-json.mjs`.
 
 ## Passcode Behavior
 
-Adding a game requires the current passcode. The default/current passcode after testing is:
+Adding, editing or deleting a game requires the passcode. The current passcode is:
 
 ```text
 psip
 ```
 
-The passcode cannot be changed from the website. To change it, edit `DEFAULT_PASSCODE` in `server.mjs` and `DEFAULT_ENTRY_PASSCODE` in `app.js`, then restart the server. An older SQLite `settings.entry_passcode` value may exist in existing databases, but the current server code does not use it.
+The passcode cannot be changed from the website. To change it, edit `DEFAULT_PASSCODE` in `server.mjs` and `DEFAULT_ENTRY_PASSCODE` in `app.js`, then restart the server.
 
 ## Frontend Structure
 
-- `index.html`: app shell, tabs, welcome Overview, Players table, Games ledger, player stats dialog, passcode dialog, entry dialog.
-- `styles.css`: visual system and responsive layout.
-- `app.js`: browser state, stat derivation, API calls, CSV export, entry form behavior.
+- `index.html`: app shell, seven views (Home, Rankings, Tier Lists, Players, Games, Statistics, About) and all dialogs (player profile, game detail, duo/info, passcode, entry, delete).
+- `styles.css`: night-sky visual system. Gold = Rohan / the Day, lavender = Natalie / the Night, blue = Good team, red = Evil team. Fonts: Cormorant Garamond (display), Cinzel (labels), Figtree (UI), loaded from Google Fonts with serif/sans fallbacks.
+- `ratings.js`: pure ES module, the rating engine (see below). No DOM access, so it can be imported from Node for verification.
+- `app.js`: ES module (`<script type="module">`). Loading, hash routing, derivation of the role-based "spreadsheet" stats, all rendering, hand-written SVG charts (Elo history, sparklines, chess-title ladder, forecast timeline, Oracle gauge), procedural SVG player sigils, CSV export, and the storyteller entry/edit/delete flow.
 - `server.mjs`: static file server, SQLite synchronization, `/api/state`, `/api/unlock`, `/api/games`.
 - `games-sheet.mjs`: dependency-free CSV reader and normalizer shared by the server and snapshot generator.
-- `games-sheet.json`: committed browser-readable snapshot of the Games Sheet for read-only Pages fallback; regenerate it with `node generate-games-sheet-json.mjs` after changing the CSV.
-- `README.md`: human developer handoff with run instructions, API notes, persistence details, and development guidance.
-- `.github/workflows/pages.yml`: deploys the read-only static GitHub Pages site.
+- `games-sheet.json`: committed browser-readable snapshot of the Games Sheet for the read-only Pages fallback.
+- `.github/workflows/pages.yml`: deploys the read-only static site.
 
-The Overview tab was intentionally simplified. It should remain a minimal welcome page with links/buttons to Players and Games plus a compact stat strip. The leaderboard section was removed by request.
+Routing is hash based: `#home`, `#rankings`, `#tiers`, `#players`, `#games`, `#stats`, `#about`. `#player/<Name>` and `#game/<id>` deep-link straight into a profile or game popup. Anything with `data-player`, `data-game` or `data-duo` opens the matching dialog through one delegated click handler.
 
-Player table rows are clickable and keyboard-accessible. Clicking any row opens a large player stats dialog showing every Player Stats spreadsheet metric for that player, plus role and recent-game context.
+## Pages
 
-## Stat Logic
+- **Home** is themed around Rohan and Natalie (constant `LEGENDS` at the top of `app.js`; change the names there to re-theme it). Hero line "Natalie is god." plus a live line built from Rohan's current chess title; an animated SVG clocktower whose clock shows the real time, with a sun and moon orbiting it. Below: a Day/Night diptych of the two (all facts computed live), their head-to-head rivalry with clickable game medallions, a two-player Elo history chart (pickers default to Rohan vs Natalie), a stat strip, the latest game, and links to the other pages.
+- **Rankings**: Elo ladder (toggle chess scale / Base Elo, 95% range for provisional players) and Aura leaderboard side by side with equal weight, a chess-title ladder chart, and a sortable full leaderboard table.
+- **Tier Lists**: Rookie, Upset and Duo tier lists as S-F rows of chips. Duo chips open a duo dialog with every shared game.
+- **Players**: every participant as a card (sigil, chess Elo, title, sparkline, rank badges), searchable by name or character, sortable. Cards open the profile: rating tiles, distance to next title, Elo history chart, characters, most frequent teammates, all Player Stats spreadsheet metrics, and a game-by-game table with team win chance and Elo change.
+- **Games**: forecast-vs-result timeline chart, filters (script, format, winner), ledger with an Elo forecast bar and Upset tag per game, CSV download, and a collapsible Data QA panel. Game popups show both teams with each player's Elo before/after.
+- **Statistics**: the Oracle matchup simulator (tap players into Good/Evil; uses `previewMatchup`, swing cap included), player/character record lookup, Good/Evil wins per script with the Elo expectation tick, and most-played characters.
+- **About**: club copy (counts are live), facts, and "How the ratings work" with the formulas, title table and tier cutoffs.
 
-Stats are derived in `app.js` from Games Sheet rows supplied by `/api/state` (or `games-sheet.json` when read-only):
+The Awards, Events and Gallery placeholder pages and the roster photo placeholders were removed by request (2026-11). Do not reintroduce placeholder content.
 
-- Normal games count players with non-`n/a` roles, excluding traveler roles.
-- Overall wins/losses come from each game's `winNames` and `lossNames`.
-- Good/evil team counts are inferred from role alignment plus game outcome.
-- Traveler roles are excluded from normal game totals and counted separately as good/evil travels.
-- A small `SEEDED_TRAVELER_ALIGNMENT` map preserves the alignment for existing traveler rows that were not listed in Win/Loss in the original CSV.
+## Rating Engine (`ratings.js`)
 
-Known issue from source data: a few historical rows have role cells for players not listed in Win/Loss. The app surfaces these in the Games tab's Data QA section.
+A faithful port of the workbook's `Elo`, `Elo Calc`, `Elo Players`, `Elo Duos`, `Tier Lists` and `Aura` tabs. Settings live in `RATING_SETTINGS` (start 1000, K 100, Evil advantage 0, team-size scaling on, provisional below 5 games, RD0 150, leaderboard minimum 3 games, chess average 1500, chess stretch 3.96, chess target 2850, min underdog games 3, min duo games 4). Chess titles are `CHESS_TITLES`; tier cutoffs are `TIER_CUTOFFS`. Aura and Elo are treated as equally valid metrics.
+
+- Teams come only from the Win/Loss lists (case-insensitive, spaces ignored, exact name match). Travellers and storytellers who are not in those lists are not rated.
+- `P(Good) = 1 / (1 + 10^((EvilAvg + EvilAdvantage - GoodAvg) / 400))` using ratings going into the game.
+- Good players get `+K * N/(2*#Good) * (S - P)`, Evil players `-K * N/(2*#Evil) * (S - P)`; if the largest raw change exceeds K, the whole game is scaled by `K / max`. Ratings stay zero-sum (total = 1000 x players).
+- RD and 95% range, Chess Elo (`max(100, 1500 + 3.96 * (Elo - 1000))`), titles, Aura (`max(Elo - 1000, 0) * games`), Elo percentile, rookies (5 newest debuts, best Elo first), upsets (team chance < 50%), and duos (same nonzero side, expected % from the game's P) all match the workbook.
+- Names in Win/Loss that are not player columns are appended as new slots, like adding a column after the last one.
+
+Verification: every per-game value (team averages, P, changes, cap), every player's Elo/games/splits/peak/last swing/RD/range/upsets/Aura/percentile/chess/title, the leaderboard, Aura board, rookie, upset and duo lists, and the record block were compared against the workbook for all 30 games and matched (sum of ratings 38,000).
+
+## Spreadsheet-Style Stats
+
+Role-based stats (games, travels, wins, losses, Good/Evil splits, frequencies, Demon games, storyteller count) are derived in `app.js` (`computeStats`):
+
+- Normal games count players with non-`n/a` roles, excluding traveller roles, which are counted separately as Good/Evil travels.
+- A player's team comes from the Win/Loss lists first, then from role alignment (`GOOD_ROLES` / `EVIL_ROLES`) only when they are not listed. `SEEDED_TRAVELER_ALIGNMENT` fixes the alignment of unlisted traveller rows.
+- These match the workbook's Player Stats tab except three loss counts where the sheet itself is inconsistent (Chris, Pavlik and Ren: the sheet's wins plus losses do not equal games played). The site's numbers agree with the Elo engine.
+
+Known source-data issue: a few historical rows have role cells for players not listed in Win/Loss. The Games page Data QA panel lists them.
 
 ## Game Entry UX
 
 The round `ST` button opens the passcode dialog. After a successful unlock, users can enter a game.
 
-New players are supported in two ways:
+New players: type a new name in a participant row, or use the `New player` field and `Add new`. New roles: free-type in a role row or use `New role` / `Add role`. Participant result fields store real `Win`/`Loss` values and auto-populate from the outcome plus resolved alignment until edited by hand. The Final day select stores `1` / `0` / blank (CSV `TRUE` / `FALSE` are normalized to the same values).
 
-- Type a new name directly in a participant row.
-- Use the `New player` field and `Add new` button, which inserts a participant row and focuses the role field.
+The entry dialog shows a live Elo preview (forecast and swing per team) built from the Win/Loss results, exactly as the engine will read them.
 
-New role names are supported by free-typing in a role row or by using the `New role` field and `Add role` button. Added roles are included in the role suggestion datalist during the session and become part of the saved game data.
-
-Participant result fields store real `Win`/`Loss` values. They auto-populate from game outcome plus resolved player alignment until a user manually edits that row's result field.
-
-Saving a game posts to `/api/games` with the active passcode. If the server is unavailable or the passcode is wrong, the game is not saved.
-
-Editing a game starts from that game's detail popup. The `Edit game` button sits next to `Delete game`, reuses the same entry dialog, preserves the existing game id, and saves through `PUT /api/games/:id` with the active passcode.
+Saving posts to `/api/games` with the active passcode, closes the dialog and switches to Games. Editing starts from a game popup (`Edit game`), reuses the entry dialog, keeps the game id, and saves through `PUT /api/games/:id`. `Delete game` in the popup asks for the passcode and calls `DELETE /api/games/:id`.
 
 ## API Notes
 
-`GET /api/state`
+`GET /api/state` returns record headers and all games from SQLite.
 
-Returns record headers and all games from SQLite.
+`POST /api/unlock` body `{ "passcode": "..." }` returns `200` for a valid passcode, `401` otherwise.
 
-`POST /api/unlock`
+`POST /api/games` body `{ "passcode": "...", "game": { ... } }` inserts a durable game row.
 
-Body: `{ "passcode": "..." }`. Returns `200` for valid passcode, `401` otherwise.
+`PUT /api/games/:id` body `{ "passcode": "...", "game": { ... } }` updates a row, preserving id and source.
 
-`POST /api/games`
-
-Body: `{ "passcode": "...", "game": { ... } }`. Inserts a durable game row in SQLite.
-
-`PUT /api/games/:id`
-
-Body: `{ "passcode": "...", "game": { ... } }`. Updates an existing SQLite game row after passcode validation. The server preserves the row id and source, replacing date/outcome/storyteller/player count/format/script/winners/losers/roles/alignment overrides.
-
-`DELETE /api/games/:id`
-
-Body: `{ "passcode": "..." }`. Deletes a game row from SQLite after passcode validation. The Games tab exposes deletion only at the bottom of each game detail popup, followed by a passcode confirmation dialog.
+`DELETE /api/games/:id` body `{ "passcode": "..." }` deletes a row.
 
 ## Verification Already Done
 
-- `node --check app.js`
-- `node --check server.mjs`
-- API state returned 27 seeded games.
-- Correct passcode unlock succeeded.
-- Wrong passcode unlock failed.
-- Controlled `/api/games` write/delete test inserted a row and restored DB count to 27.
-- Controlled `/api/games` create/edit/delete test inserted a temp row, updated it through `PUT /api/games/:id`, deleted it, and restored DB count to 27.
-- Wrong passcode write test returned `401` and left DB count unchanged.
-- Passcode was changed by user request from `psipress27` to `psip`.
-- Website passcode-changing controls and the `/api/passcode` endpoint were removed by user request; passcode changes are code-only now.
-- Successful new-game save now closes the entry dialog and switches directly to the Games tab.
-- Game table rows are clickable and keyboard-accessible. Clicking a game opens a game detail popup with metadata, win/loss lists, role/player details, and a bottom `Delete game` button.
-- Games can be deleted from the game detail popup with the passcode, for correcting accidental entries.
-- Games can be edited from the game detail popup with the passcode, using the same entry form as new games.
-- The new-game entry form suppresses Enter-key form submission so pressing Enter in inputs does not close the dialog accidentally.
-- Desktop and mobile Chrome headless screenshots were taken after the Overview revamp; mobile wrapping was fixed.
+- `node --check` on `app.js`, `ratings.js`, `server.mjs`.
+- Rating engine compared value-by-value against the Master Sheet with Elo workbook (all checks passed).
+- Role-based stats compared against the Player Stats tab (only the three sheet inconsistencies above differ).
+- Old Games-tab CSV layout (no Format column) still parses to the same games.
+- `/api/state` returns 30 games; correct passcode unlock returns 200, wrong returns 401.
+- Browser end-to-end test through the UI: added a game with a brand-new player (Elo preview shown, count 30 -> 31, ratings and the home page updated), edited it via `PUT`, rejected a wrong delete passcode, deleted it (count back to 30). No console errors.
+- Static read-only copy (same files as the Pages workflow) loads 30 games from `games-sheet.json`, hides `ST`, and shows no Edit/Delete.
+- Desktop (1360px) and mobile (390px) headless Chromium screenshots of every page and the main dialogs.
 
 ## Worktree Notes
 
-Current untracked files include the two CSVs, app files, `data/`, and `.DS_Store`. `.DS_Store` existed during development and was left untouched.
-
-Local Git identity was set earlier for this repo:
+`.DS_Store` may exist locally and is ignored. Local Git identity used earlier:
 
 ```text
 user.name = Psi Press
@@ -156,7 +155,3 @@ origin = https://github.com/PsiPress/botc-website.git
 ## Ongoing Instruction
 
 Keep this file updated whenever implementation decisions, data flow, persistence, run commands, or major UI behavior changes.
-
-## Website Reorganization (2026-07)
-
-The primary navigation is now organized as Home, About, Roster, Awards, Games, Statistics, Events, and Gallery. Roster presents up to 16 active-player cards with image placeholders and profile buttons; profiles reuse the complete player-stat dialog. Awards, events, and gallery intentionally contain polished placeholder space that can be filled with final copy, winner lists, event metadata, and photography later. The Statistics page adds player and character record lookup controls derived from the live game data. The Games page retains the durable game ledger and identifies the Games Sheet as its archival source in the UI.

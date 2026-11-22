@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 
-const GAMES_SHEET_BASE_COLUMN_COUNT = 8;
+// The CSV may be exported straight from the spreadsheet's Games tab (8 base
+// columns, no Format) or from the Record layout (9 base columns, Format at
+// index 5). Both are accepted; player columns always follow the base columns.
 const NORMALIZED_HEADERS = ["", "Outcome", "Final Day", "Storyteller", "Player Count", "Format", "Script", "Win", "Loss"];
 
 export function readGamesSheet(csvPath) {
@@ -15,26 +17,30 @@ export function readGamesSheet(csvPath) {
 }
 
 export function gamesSheetState({ headers, rows }) {
-  const playerHeaders = headers.slice(GAMES_SHEET_BASE_COLUMN_COUNT);
+  const hasFormat = clean(headers[5]).toLowerCase() === "format";
+  const base = hasFormat ? 9 : 8;
+  const playerHeaders = headers.slice(base).filter(Boolean);
   return {
     headers: NORMALIZED_HEADERS.concat(playerHeaders),
-    games: rows.map((row, index) => rowToGame(row, index, playerHeaders)).filter(Boolean),
+    games: rows.map((row, index) => rowToGame(row, index, playerHeaders, hasFormat)).filter(Boolean),
   };
 }
 
-function rowToGame(row, index, playerHeaders) {
+function rowToGame(row, index, playerHeaders, hasFormat) {
   const date = clean(row[0]);
   const outcome = clean(row[1]);
   if (!date || !outcome) return null;
+  const base = hasFormat ? 9 : 8;
+  const at = column => clean(row[hasFormat || column < 5 ? column : column - 1]);
   const roles = {};
   playerHeaders.forEach((player, offset) => {
-    const role = clean(row[offset + GAMES_SHEET_BASE_COLUMN_COUNT]);
+    const role = clean(row[offset + base]);
     if (role && role.toLowerCase() !== "n/a") roles[player] = role;
   });
   return {
     id: `games-sheet-${index}`, source: "games-sheet", date, outcome,
-    finalDay: finalDayValue(row[2]), storyteller: clean(row[3]), playerCount: numberOrZero(row[4]),
-    format: "", script: clean(row[5]), winNames: splitNames(row[6]), lossNames: splitNames(row[7]),
+    finalDay: finalDayValue(row[2]), storyteller: at(3), playerCount: numberOrZero(row[4]),
+    format: hasFormat ? at(5) : "", script: at(6), winNames: splitNames(at(7)), lossNames: splitNames(at(8)),
     roles, alignmentOverrides: {},
   };
 }

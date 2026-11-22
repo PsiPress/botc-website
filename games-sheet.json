@@ -45,7 +45,8 @@
     "Jack",
     "Izzy",
     "Chris",
-    "Pavlik"
+    "Pavlik",
+    "Gack"
   ],
   "games": [
     {
@@ -56,7 +57,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 8,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Aden",
@@ -90,7 +91,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 8,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Alexandra",
@@ -124,7 +125,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 9,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Alexandra",
@@ -160,7 +161,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 8,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Aden",
@@ -194,7 +195,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 5,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Alexandra",
@@ -222,7 +223,7 @@
       "finalDay": "0",
       "storyteller": "Anika",
       "playerCount": 8,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Rohan",
@@ -256,7 +257,7 @@
       "finalDay": "1",
       "storyteller": "Anika, Jasmine",
       "playerCount": 9,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Natalie",
@@ -292,7 +293,7 @@
       "finalDay": "1",
       "storyteller": "Jasmine",
       "playerCount": 10,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Anika",
@@ -330,7 +331,7 @@
       "finalDay": "0",
       "storyteller": "Anika, Jasmine",
       "playerCount": 10,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Ryan",
@@ -368,7 +369,7 @@
       "finalDay": "1",
       "storyteller": "Anika, Amita",
       "playerCount": 10,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Josh",
@@ -406,7 +407,7 @@
       "finalDay": "0",
       "storyteller": "Anika",
       "playerCount": 7,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Aden",
@@ -438,7 +439,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 7,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Aden",
@@ -470,7 +471,7 @@
       "finalDay": "1",
       "storyteller": "Anika, Jasmine",
       "playerCount": 11,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Alexandra",
@@ -510,7 +511,7 @@
       "finalDay": "1",
       "storyteller": "Anika, Rohan",
       "playerCount": 13,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "August",
@@ -554,7 +555,7 @@
       "finalDay": "1",
       "storyteller": "Rohan, Asher",
       "playerCount": 8,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Carina",
@@ -588,7 +589,7 @@
       "finalDay": "0",
       "storyteller": "Anika, Rohan",
       "playerCount": 8,
-      "format": "",
+      "format": "In-Person",
       "script": "Sects & Violets",
       "winNames": [
         "Alexandra",
@@ -622,7 +623,7 @@
       "finalDay": "0",
       "storyteller": "Anika, Natalie",
       "playerCount": 7,
-      "format": "",
+      "format": "In-Person",
       "script": "Sects & Violets",
       "winNames": [
         "Rohan",
@@ -654,7 +655,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 7,
-      "format": "",
+      "format": "In-Person",
       "script": "Sects & Violets",
       "winNames": [
         "Purpleline",
@@ -686,7 +687,7 @@
       "finalDay": "0",
       "storyteller": "Anika",
       "playerCount": 12,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Aden",
@@ -728,7 +729,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 7,
-      "format": "",
+      "format": "Online",
       "script": "Trouble Brewing",
       "winNames": [
         "Aden",
@@ -760,7 +761,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 9,
-      "format": "",
+      "format": "In-Person",
       "script": "Sects & Violets",
       "winNames": [
         "Rohan",
@@ -798,7 +799,7 @@
       "finalDay": "0",
       "storyteller": "Anika, Carina",
       "playerCount": 11,
-      "format": "",
+      "format": "In-Person",
       "script": "Sects & Violets",
       "winNames": [
         "Filippos",
@@ -838,7 +839,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 7,
-      "format": "",
+      "format": "In-Person",
       "script": "Trouble Brewing",
       "winNames": [
         "Alexandra",
@@ -870,7 +871,7 @@
       "finalDay": "1",
       "storyteller": "Anika, Rohan",
       "playerCount": 14,
-      "format": "",
+      "format": "In-Person",
       "script": "Sects & Violets",
       "winNames": [
         "Carina",
@@ -918,7 +919,7 @@
       "finalDay": "0",
       "storyteller": "Anika, Chris",
       "playerCount": 11,
-      "format": "",
+      "format": "Online",
       "script": "Sects & Violets",
       "winNames": [
         "August",
@@ -958,7 +959,7 @@
       "finalDay": "1",
       "storyteller": "Anika, Chris, Rohan",
       "playerCount": 15,
-      "format": "",
+      "format": "In-Person",
       "script": "Bad Moon Rising",
       "winNames": [
         "Vincent",
@@ -1006,7 +1007,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 8,
-      "format": "",
+      "format": "In-Person",
       "script": "Bad Moon Rising",
       "winNames": [
         "Alexandra",
@@ -1040,7 +1041,7 @@
       "finalDay": "1",
       "storyteller": "Anika",
       "playerCount": 7,
-      "format": "",
+      "format": "Online",
       "script": "Bad Moon Rising",
       "winNames": [
         "Aden",
@@ -1061,6 +1062,85 @@
         "Carina": "Pukka",
         "Chris": "Sailor",
         "Pavlik": "Exorcist"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-28",
+      "source": "games-sheet",
+      "date": "10/31/26",
+      "outcome": "Good",
+      "finalDay": "1",
+      "storyteller": "Anika, Chris",
+      "playerCount": 13,
+      "format": "In-Person",
+      "script": "Devout Theists",
+      "winNames": [
+        "Aden",
+        "Alexandra",
+        "Carina",
+        "Filippos",
+        "Jasmine",
+        "Pavlik",
+        "Will",
+        "Vincent",
+        "Wendell"
+      ],
+      "lossNames": [
+        "Asher",
+        "Kate",
+        "Natalie",
+        "Vic"
+      ],
+      "roles": {
+        "Aden": "Fisherman",
+        "Alexandra": "Pixie",
+        "Andreas": "Judge",
+        "Asher": "Marionette",
+        "Filippos": "Farmer",
+        "Jasmine": "Amnesiac",
+        "Kate": "Psychopath",
+        "Natalie": "Goblin",
+        "Vic": "Lleech",
+        "Vincent": "Cannibal",
+        "Will": "Noble",
+        "Carina": "Juggler",
+        "Wendell": "Mathematician",
+        "Pavlik": "Flowergirl"
+      },
+      "alignmentOverrides": {}
+    },
+    {
+      "id": "games-sheet-29",
+      "source": "games-sheet",
+      "date": "11/19/26",
+      "outcome": "Evil",
+      "finalDay": "1",
+      "storyteller": "Anika, Wendell",
+      "playerCount": 8,
+      "format": "Online",
+      "script": "Devout Theists",
+      "winNames": [
+        "Alexandra",
+        "Carina",
+        "Gack",
+        "Vic",
+        "Ziad"
+      ],
+      "lossNames": [
+        "Chris",
+        "Rohan",
+        "Natalie"
+      ],
+      "roles": {
+        "Alexandra": "Legion",
+        "Natalie": "Klutz",
+        "Rohan": "High Priestess",
+        "Vic": "Legion",
+        "Ziad": "Legion",
+        "Carina": "Legion",
+        "Chris": "Savant",
+        "Gack": "Legion"
       },
       "alignmentOverrides": {}
     }

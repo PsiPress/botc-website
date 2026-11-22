@@ -3,156 +3,497 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Psi Press Clocktower Stats</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Psi Press · Blood on the Clocktower</title>
+    <meta name="description" content="Ratings, Aura, tier lists and every game played by Psi Press, Hyde Park's most unserious Blood on the Clocktower group.">
+    <meta name="theme-color" content="#0c0a12">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230c0a12' stroke='%23e8b860' stroke-width='3'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23e8b860' font-family='Georgia,serif'%3E%CE%A8%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Figtree:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="styles.css?v=20261122">
   </head>
   <body>
+    <svg class="sky-layer" id="skyLayer" aria-hidden="true" preserveAspectRatio="xMidYMid slice"></svg>
+
     <header class="site-header">
-      <a class="brand" href="#home" data-view-link="home" aria-label="Psi Press Clocktower home">
-        <span class="brand-mark">Ψ</span><span><strong>Psi Press</strong><small>Blood on the Clocktower</small></span>
+      <a class="brand" href="#home" aria-label="Psi Press Clocktower home">
+        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="24" cy="24" r="16.5" fill="none" stroke="currentColor" stroke-width="0.8" stroke-dasharray="1.2 3.1"/>
+          <text x="24" y="31.5" text-anchor="middle" font-size="22" fill="currentColor" font-family="Cormorant Garamond, Georgia, serif" font-weight="700">Ψ</text>
+        </svg>
+        <span class="brand-text"><strong>Psi Press</strong><small>Blood on the Clocktower</small></span>
       </a>
-      <nav class="site-nav" aria-label="Primary navigation">
-        <button class="nav-link is-active" data-view-button="home" type="button">Home</button>
-        <button class="nav-link" data-view-button="about" type="button">About</button>
-        <button class="nav-link" data-view-button="roster" type="button">Roster</button>
-        <button class="nav-link" data-view-button="awards" type="button">Awards</button>
-        <button class="nav-link" data-view-button="games" type="button">Games</button>
-        <button class="nav-link" data-view-button="statistics" type="button">Statistics</button>
-        <button class="nav-link" data-view-button="events" type="button">Events</button>
-        <button class="nav-link" data-view-button="gallery" type="button">Gallery</button>
+      <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" aria-label="Primary">
+        <a class="nav-link" href="#home" data-nav="home">Home</a>
+        <a class="nav-link" href="#rankings" data-nav="rankings">Rankings</a>
+        <a class="nav-link" href="#tiers" data-nav="tiers">Tier Lists</a>
+        <a class="nav-link" href="#players" data-nav="players">Players</a>
+        <a class="nav-link" href="#games" data-nav="games">Games</a>
+        <a class="nav-link" href="#stats" data-nav="stats">Statistics</a>
+        <a class="nav-link" href="#about" data-nav="about">About</a>
       </nav>
     </header>
 
-    <main>
-      <section class="view-panel is-active" data-view="home">
-        <div class="hero-panel">
-          <div class="hero-copy"><p class="eyebrow">Psi Press presents</p><h1>Natalie is god.</h1><p>Hyde Park’s most unserious Blood on the Clocktower group.</p><div class="hero-actions"><button class="primary-button" data-view-link="roster">Meet the players</button><button class="text-button" data-view-link="games">Explore the archive <span>→</span></button></div></div>
-          <div class="hero-art" aria-hidden="true"><div class="moon"></div><div class="tower"><i></i><i></i><i></i></div><span class="star star-one">✦</span><span class="star star-two">✦</span><span class="star star-three">✦</span></div>
+    <main id="main">
+      <!-- HOME: Day & Night -->
+      <section class="view" data-view="home" aria-labelledby="heroTitle">
+        <div class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Psi Press presents</p>
+            <h1 id="heroTitle"><span class="hero-line hero-line-night">Natalie is god.</span><span class="hero-line hero-line-day">Rohan is merely a grandmaster.</span></h1>
+            <p class="hero-lead">Hyde Park’s most unserious Blood on the Clocktower group. <span id="heroCount">Every game</span>, one rating ladder, and two legends who rule this town: one by the numbers, one by divine right.</p>
+            <div class="hero-actions">
+              <a class="button button-gold" href="#rankings">See the rankings</a>
+              <a class="button button-ghost" href="#games">Enter the archive <span aria-hidden="true">→</span></a>
+            </div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <svg viewBox="0 0 400 480" class="tower-svg">
+              <defs>
+                <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#ffe3a3"/>
+                  <stop offset="55%" stop-color="#e8b860"/>
+                  <stop offset="100%" stop-color="#e8b860" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#f1ecff"/>
+                  <stop offset="60%" stop-color="#b8a6ff" stop-opacity=".55"/>
+                  <stop offset="100%" stop-color="#b8a6ff" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="towerFill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#2a2140"/>
+                  <stop offset="100%" stop-color="#120e1c"/>
+                </linearGradient>
+                <mask id="crescent">
+                  <rect x="-40" y="-40" width="80" height="80" fill="#fff"/>
+                  <circle cx="11" cy="-7" r="21" fill="#000"/>
+                </mask>
+              </defs>
+              <circle cx="200" cy="250" r="176" class="orbit-ring"/>
+              <g class="orbit">
+                <g transform="translate(200 74)" class="orbit-sun">
+                  <circle r="58" fill="url(#sunGlow)" opacity=".55"/>
+                  <g class="sun-rays">
+                    <path d="M0-44V-32M0 32V44M-44 0H-32M32 0H44M-31-31l8 8M23 23l8 8M-31 31l8-8M23-23l8-8" stroke="#e8b860" stroke-width="3" stroke-linecap="round"/>
+                  </g>
+                  <circle r="24" fill="#e8b860"/>
+                  <circle r="24" fill="none" stroke="#ffe3a3" stroke-width="1.5"/>
+                </g>
+                <g transform="translate(200 426)" class="orbit-moon">
+                  <circle r="56" fill="url(#moonGlow)" opacity=".7"/>
+                  <circle r="25" fill="#ddd4ff" mask="url(#crescent)"/>
+                </g>
+              </g>
+              <path d="M0 480 Q 110 410 200 418 T 400 470 V480 Z" fill="#0b0912"/>
+              <g class="tower">
+                <path d="M158 452 L164 214 H236 L242 452 Z" fill="url(#towerFill)" stroke="#3b2f58" stroke-width="1.5"/>
+                <rect x="152" y="160" width="96" height="58" fill="#1d1730" stroke="#3b2f58" stroke-width="1.5"/>
+                <path d="M146 162 L200 52 L254 162 Z" fill="#231b38" stroke="#3b2f58" stroke-width="1.5"/>
+                <path d="M200 52 V28" stroke="#e8b860" stroke-width="2"/>
+                <path d="M200 30 L220 36 L200 42 Z" fill="#c2333b"/>
+                <path d="M176 218 V186 a12 12 0 0 1 24 0 V218 M200 218 V186 a12 12 0 0 1 24 0 V218" fill="#0c0a12" stroke="#3b2f58"/>
+                <circle cx="200" cy="268" r="34" fill="#efe6d2" stroke="#e8b860" stroke-width="3"/>
+                <g id="clockTicks" stroke="#2a2140" stroke-width="2"></g>
+                <line id="clockHour" x1="200" y1="268" x2="200" y2="248" stroke="#1a1426" stroke-width="4" stroke-linecap="round"/>
+                <line id="clockMinute" x1="200" y1="268" x2="200" y2="240" stroke="#1a1426" stroke-width="2.5" stroke-linecap="round"/>
+                <line id="clockSecond" x1="200" y1="272" x2="200" y2="238" stroke="#c2333b" stroke-width="1.2" stroke-linecap="round"/>
+                <circle cx="200" cy="268" r="3" fill="#c2333b"/>
+                <path d="M190 340 v-16 a10 10 0 0 1 20 0 v16 Z M190 392 v-16 a10 10 0 0 1 20 0 v16 Z" fill="#e8b860" class="tower-window"/>
+                <path d="M186 452 v-28 a14 14 0 0 1 28 0 v28 Z" fill="#0c0a12" stroke="#3b2f58"/>
+              </g>
+            </svg>
+          </div>
         </div>
-        <section class="summary-grid" aria-label="Community summary"><article class="metric-tile"><span>Games played</span><strong id="metricGames">--</strong></article><article class="metric-tile"><span>Players in the story</span><strong id="metricPlayers">--</strong></article></section>
-        <section class="home-links"><button data-view-link="awards"><span>✦</span><strong>Hall of fame</strong><small>Meet our award winners</small></button><button data-view-link="events"><span>◌</span><strong>Gather round</strong><small>See what is coming up</small></button><button data-view-link="gallery"><span>▣</span><strong>Photo album</strong><small>Moments from game night</small></button></section>
+
+        <section class="diptych" aria-label="Rohan and Natalie">
+          <article class="legend legend-day" id="legendRohan"></article>
+          <div class="diptych-seam" aria-hidden="true"><span>&amp;</span></div>
+          <article class="legend legend-night" id="legendNatalie"></article>
+        </section>
+
+        <section class="rivalry panel" id="rivalry" aria-labelledby="rivalryTitle"></section>
+
+        <section class="panel duel" aria-labelledby="duelTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Two lines across the sky</p>
+              <h2 id="duelTitle">Rating over time</h2>
+              <p class="section-copy">Base Elo after every rated game. Hover or tap the chart to scrub through history, or swap in anyone else.</p>
+            </div>
+            <div class="compare-pickers">
+              <label class="field"><span class="dot dot-day"></span><select id="compareA" aria-label="First player"></select></label>
+              <span class="compare-vs">vs</span>
+              <label class="field"><span class="dot dot-night"></span><select id="compareB" aria-label="Second player"></select></label>
+            </div>
+          </div>
+          <div id="duelChart" class="chart-host"></div>
+        </section>
+
+        <section class="pulse" aria-label="Club at a glance">
+          <div class="stat-strip" id="statStrip"></div>
+          <div class="pulse-grid">
+            <article class="panel latest" id="latestGame"></article>
+            <nav class="portal-grid" aria-label="Explore">
+              <a class="portal" href="#rankings"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 32h24M12 32V20h5v12M18 32V10h5v22M24 32V16h5v16" fill="none" stroke="currentColor" stroke-width="2"/></svg><strong>Rankings</strong><small>Elo ladder &amp; Aura</small></a>
+              <a class="portal" href="#tiers"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24M8 20h16M8 30h9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><strong>Tier lists</strong><small>Rookies, upsets, duos</small></a>
+              <a class="portal" href="#players"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 33c1.5-6 6-9 11-9s9.5 3 11 9" fill="none" stroke="currentColor" stroke-width="2"/></svg><strong>Players</strong><small>Profiles &amp; histories</small></a>
+              <a class="portal" href="#stats"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20 L27 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="20" cy="20" r="2" fill="currentColor"/></svg><strong>The Oracle</strong><small>Predict any matchup</small></a>
+            </nav>
+          </div>
+        </section>
       </section>
 
-      <section class="view-panel page-intro" data-view="about"><p class="eyebrow">Lore</p><h2>Why is there Blood on my Clocktower??</h2><div class="prose-card"><p class="placeholder-copy">The Ψ Press is an invite-only UChicago-based group that plays Blood on the Clocktower approximately twice a month. We first started playing on January 25th, 2025, and have run twenty-eight games with a rotating cast of thirty-six participants, through both online and in-person formats. If you are interested in joining us for a game, please email uchicagopsipress@gmail.com with your name, affiliation to any existing members, and a demonstration of your sense of humor. Applications are open year-round, with rolling admissions. Typical admission processes include some behavioral screening, as well as some deductive puzzle-solving.</p><span class="placeholder-note">Description coming soon</span></div></section>
+      <!-- RANKINGS -->
+      <section class="view" data-view="rankings" aria-labelledby="rankingsTitle">
+        <div class="page-head">
+          <p class="eyebrow">The ladder</p>
+          <h2 id="rankingsTitle">Rankings</h2>
+          <p class="section-copy">Two equally valid ways to be great. <strong>Elo</strong> says how good you are right now. <strong>Aura</strong> says how good you have been, for how long. Players need <span data-setting="leaderboardMin">3</span> games to appear.</p>
+        </div>
+        <div class="record-strip" id="recordStrip"></div>
+        <div class="boards">
+          <section class="panel board" aria-labelledby="eloBoardTitle">
+            <div class="board-head">
+              <div>
+                <p class="eyebrow">Elo</p>
+                <h3 id="eloBoardTitle">The Elo ladder</h3>
+              </div>
+              <div class="segmented" role="group" aria-label="Rating scale">
+                <button type="button" class="is-active" data-scale="chess">Chess scale</button>
+                <button type="button" data-scale="base">Base Elo</button>
+              </div>
+            </div>
+            <div id="eloBoard" class="board-list"></div>
+          </section>
+          <section class="panel board" aria-labelledby="auraBoardTitle">
+            <div class="board-head">
+              <div>
+                <p class="eyebrow">Aura</p>
+                <h3 id="auraBoardTitle">The Aura leaderboard</h3>
+              </div>
+              <p class="board-formula">(Elo − 1000) × games</p>
+            </div>
+            <div id="auraBoard" class="board-list"></div>
+          </section>
+        </div>
+        <section class="panel" aria-labelledby="ladderTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Chess titles</p>
+              <h3 id="ladderTitle">Where everyone sits on the chess ladder</h3>
+              <p class="section-copy">Base Elo stretched onto the chess scale, so an average player shows 1500. Same formula for everyone.</p>
+            </div>
+          </div>
+          <div id="titleLadder" class="chart-host"></div>
+        </section>
+        <section class="panel" aria-labelledby="fullTableTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Everything</p>
+              <h3 id="fullTableTitle">Full leaderboard</h3>
+            </div>
+          </div>
+          <div class="table-shell">
+            <table class="data-table" id="leaderTable">
+              <thead>
+                <tr>
+                  <th data-sort="rank">#</th><th data-sort="name">Player</th><th data-sort="chess">Chess Elo</th><th>Title</th><th data-sort="games">Games</th><th data-sort="winRate">W-L</th><th data-sort="elo">Base Elo</th><th>95% range</th><th data-sort="lastSwing">Last swing</th><th data-sort="peak">Peak</th><th>As Good</th><th>As Evil</th><th data-sort="aura">Aura</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
 
-      <section class="view-panel" data-view="roster"><div class="section-heading"><div><p class="eyebrow">The circle</p><h2>Meet the roster</h2><p class="section-copy">Sixteen storytellers, suspects, and excellent liars.</p></div><label class="search-label">Find a player<input id="playerSearch" type="search" placeholder="Search the roster"></label></div><div id="rosterGrid" class="roster-grid"></div><select id="playerSort" hidden><option value="games">Games played</option></select><div class="table-shell visually-hidden"><table><tbody id="playerTableBody"></tbody></table></div></section>
+      <!-- TIERS -->
+      <section class="view" data-view="tiers" aria-labelledby="tiersTitle">
+        <div class="page-head">
+          <p class="eyebrow">S through F</p>
+          <h2 id="tiersTitle">Tier lists</h2>
+          <p class="section-copy">Rookies, upsets and duos, ranked against the cutoffs from the Tier Lists tab. Tap any chip for the numbers behind it.</p>
+        </div>
+        <section class="panel tier-section" aria-labelledby="rookieTitle">
+          <div class="section-head"><div><p class="eyebrow">Fresh blood</p><h3 id="rookieTitle">Rookie tier list</h3><p class="section-copy">The five newest players, best Elo first. Tier is where their Base Elo sits among every rated player.</p></div></div>
+          <div id="rookieTiers"></div>
+        </section>
+        <section class="panel tier-section" aria-labelledby="upsetTitle">
+          <div class="section-head"><div><p class="eyebrow">Against the odds</p><h3 id="upsetTitle">Upset tier list</h3><p class="section-copy">Who wins when their team is the underdog (Elo-predicted win chance under 50%). Minimum <span data-setting="minUnderdogGames">3</span> underdog games.</p></div></div>
+          <div id="upsetTiers"></div>
+        </section>
+        <section class="panel tier-section" aria-labelledby="duoTitle">
+          <div class="section-head"><div><p class="eyebrow">Better together</p><h3 id="duoTitle">Best duos</h3><p class="section-copy">Pairs on the same team at least <span data-setting="minDuoGames">4</span> times, ranked by win rate, then wins. The badge shows how far they beat (or missed) what Elo expected.</p></div></div>
+          <div id="duoTiers"></div>
+        </section>
+      </section>
 
-      <section class="view-panel" data-view="awards"><div class="page-intro"><p class="eyebrow">The honors</p><h2>Awards worth scheming for.</h2><p class="section-copy">A pair of annual celebrations for the people who make our games unforgettable.</p></div><div class="awards-grid"><button class="award-panel moon-award" data-award="Moonlit Mastermind"><div class="award-illustration">☾</div><div><p class="eyebrow">The Moonlit Mastermind</p><h3>For the player whose plans linger long after dawn.</h3><span>View winners →</span></div></button><button class="award-panel flame-award" data-award="The Candlekeeper"><div class="award-illustration">♜</div><div><p class="eyebrow">The Candlekeeper</p><h3>For the storyteller who makes every night feel magical.</h3><span>View winners →</span></div></button></div></section>
+      <!-- PLAYERS -->
+      <section class="view" data-view="players" aria-labelledby="playersTitle">
+        <div class="page-head page-head-row">
+          <div>
+            <p class="eyebrow">The circle</p>
+            <h2 id="playersTitle">Players</h2>
+            <p class="section-copy" id="playersCopy">Everyone who has sat in the circle.</p>
+          </div>
+          <div class="toolbar">
+            <label class="field">Search<input id="playerSearch" type="search" placeholder="Name or character" autocomplete="off"></label>
+            <label class="field">Sort
+              <select id="playerSort">
+                <option value="elo">Elo</option>
+                <option value="aura">Aura</option>
+                <option value="games">Games played</option>
+                <option value="winRate">Win rate</option>
+                <option value="recent">Most recent</option>
+                <option value="name">Name</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div id="rosterGrid" class="roster-grid"></div>
+      </section>
 
-      <section class="view-panel" data-view="games"><div class="section-heading"><div><p class="eyebrow">The archive</p><h2>Every game played</h2><p class="section-copy">Our complete game record, drawn from the Blood on the Clocktower Games Sheet.</p></div><div class="toolbar"><label>Script<select id="scriptFilter"><option value="">All scripts</option></select></label><button id="downloadRecord" class="secondary-button" type="button">Download record</button></div></div><div class="table-shell"><table class="games-table"><thead><tr><th>Date</th><th>Outcome</th><th>Script</th><th>Format</th><th>Players</th><th>Storyteller</th></tr></thead><tbody id="gameTableBody"></tbody></table></div><button id="downloadStats" hidden type="button">Download Stats CSV</button><section class="issues-panel" id="issuesPanel"></section></section>
+      <!-- GAMES -->
+      <section class="view" data-view="games" aria-labelledby="gamesTitle">
+        <div class="page-head page-head-row">
+          <div>
+            <p class="eyebrow">The archive</p>
+            <h2 id="gamesTitle">Every game played</h2>
+            <p class="section-copy">Drawn from the Games Sheet. Each row shows what Elo predicted before the first night.</p>
+          </div>
+          <div class="toolbar">
+            <label class="field">Script<select id="scriptFilter"><option value="">All scripts</option></select></label>
+            <label class="field">Format<select id="formatFilter"><option value="">All formats</option></select></label>
+            <label class="field">Winner<select id="outcomeFilter"><option value="">Both</option><option>Good</option><option>Evil</option></select></label>
+            <button id="downloadRecord" class="button button-ghost" type="button">Download CSV</button>
+          </div>
+        </div>
+        <div id="gamesTimeline" class="panel games-timeline"></div>
+        <div class="table-shell panel-flush">
+          <table class="data-table games-table">
+            <thead><tr><th>#</th><th>Date</th><th>Winner</th><th>Script</th><th>Elo forecast</th><th>Players</th><th>Format</th><th>Storyteller</th></tr></thead>
+            <tbody id="gameTableBody"></tbody>
+          </table>
+        </div>
+        <section class="issues" id="issuesPanel"></section>
+      </section>
 
-      <section class="view-panel" data-view="statistics"><div class="page-intro"><p class="eyebrow">Read the signs</p><h2>Statistics</h2><p class="section-copy">Compare win rates across players, characters, and alignments.</p></div><div class="stats-controls"><label>Player<select id="statsPlayer"><option value="">Choose a player</option></select></label><label>Character<select id="statsRole"><option value="">Choose a character</option></select></label></div><div id="statisticsResults" class="statistics-results"><p>Select a player or character to reveal their record.</p></div></section>
+      <!-- STATISTICS -->
+      <section class="view" data-view="stats" aria-labelledby="statsTitle">
+        <div class="page-head">
+          <p class="eyebrow">Read the signs</p>
+          <h2 id="statsTitle">Statistics</h2>
+          <p class="section-copy">Predict a matchup, look up any player or character, and see how each script treats each team.</p>
+        </div>
+        <section class="panel oracle" aria-labelledby="oracleTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">The Oracle</p>
+              <h3 id="oracleTitle">Matchup forecast</h3>
+              <p class="section-copy">Tap players to cycle them through <span class="tag tag-good">Good</span> → <span class="tag tag-evil">Evil</span> → out. The Oracle uses the same formula as the ratings, swing cap included.</p>
+            </div>
+            <div class="toolbar">
+              <button class="button button-ghost" type="button" id="oracleRandom">Random teams</button>
+              <button class="button button-ghost" type="button" id="oracleClear">Clear</button>
+            </div>
+          </div>
+          <div class="oracle-layout">
+            <div id="oraclePool" class="oracle-pool"></div>
+            <div id="oracleResult" class="oracle-result"></div>
+          </div>
+        </section>
+        <div class="stats-grid">
+          <section class="panel" aria-labelledby="lookupTitle">
+            <p class="eyebrow">Lookup</p>
+            <h3 id="lookupTitle">Player or character record</h3>
+            <div class="toolbar toolbar-left">
+              <label class="field">Player<select id="statsPlayer"><option value="">Choose a player</option></select></label>
+              <label class="field">Character<select id="statsRole"><option value="">Choose a character</option></select></label>
+            </div>
+            <div id="statisticsResults" class="lookup-results"></div>
+          </section>
+          <section class="panel" aria-labelledby="scriptTitle">
+            <p class="eyebrow">Scripts</p>
+            <h3 id="scriptTitle">Who wins on each script</h3>
+            <div id="scriptBreakdown"></div>
+          </section>
+        </div>
+        <section class="panel" aria-labelledby="roleTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">The grimoire</p>
+              <h3 id="roleTitle">Most played characters</h3>
+              <p class="section-copy">Bar length is times played; the colour split shows how often that character ended on the winning side.</p>
+            </div>
+          </div>
+          <div id="roleBreakdown" class="role-breakdown"></div>
+        </section>
+      </section>
 
-      <section class="view-panel" data-view="events"><div class="page-intro"><p class="eyebrow">Save the date</p><h2>Upcoming events</h2></div><div class="event-list"><button class="event-banner" data-event="Summer Moonlight Session"><span class="event-date">AUG<br><strong>16</strong></span><div><p class="eyebrow">Game night</p><h3>Summer Moonlight Session</h3><p>Our next evening of suspicion, stories, and snacks.</p></div><span>Details →</span></button><button class="event-banner" data-event="Autumn Storyteller Workshop"><span class="event-date">SEP<br><strong>07</strong></span><div><p class="eyebrow">Workshop</p><h3>Autumn Storyteller Workshop</h3><p>An afternoon for building scripts and practicing the art of the bluff.</p></div><span>Details →</span></button></div></section>
-
-      <section class="view-panel" data-view="gallery"><div class="page-intro"><p class="eyebrow">In pictures</p><h2>The gallery</h2><p class="section-copy">A place for photographs from the table, the afterparty, and everything in between.</p></div><div class="gallery-grid"><div class="gallery-placeholder gallery-1"><span>Photo 1</span></div><div class="gallery-placeholder gallery-2"><span>Photo 2</span></div><div class="gallery-placeholder gallery-3"><span>Photo 3</span></div><div class="gallery-placeholder gallery-4"><span>Photo 4</span></div><div class="gallery-placeholder gallery-5"><span>Photo 5</span></div><div class="gallery-placeholder gallery-6"><span>Photo 6</span></div><div class="gallery-placeholder gallery-7"><span>Photo 7</span></div><div class="gallery-placeholder gallery-8"><span>Photo 8</span></div><div class="gallery-placeholder gallery-9"><span>Photo 9</span></div></div></section>
+      <!-- ABOUT -->
+      <section class="view" data-view="about" aria-labelledby="aboutTitle">
+        <div class="page-head">
+          <p class="eyebrow">Lore</p>
+          <h2 id="aboutTitle">Why is there Blood on my Clocktower??</h2>
+        </div>
+        <div class="about-grid">
+          <article class="panel prose">
+            <p id="aboutCopy">The Ψ Press is an invite-only UChicago-based group that plays Blood on the Clocktower approximately twice a month.</p>
+            <p>If you are interested in joining us for a game, please email <a href="mailto:uchicagopsipress@gmail.com">uchicagopsipress@gmail.com</a> with your name, affiliation to any existing members, and a demonstration of your sense of humor. Applications are open year-round, with rolling admissions. Typical admission processes include some behavioral screening, as well as some deductive puzzle-solving.</p>
+          </article>
+          <article class="panel prose about-facts" id="aboutFacts"></article>
+        </div>
+        <section class="panel prose method" aria-labelledby="methodTitle">
+          <p class="eyebrow">Method</p>
+          <h3 id="methodTitle">How the ratings work</h3>
+          <ol class="method-steps">
+            <li>
+              <h4>Team strength and win chance</h4>
+              <p>Each game is Good vs Evil, read from the Win and Loss lists. A team’s rating is the average Base Elo of its players going into the game.</p>
+              <pre>P(Good wins) = 1 / (1 + 10^((EvilAvg + EvilAdvantage − GoodAvg) / 400))</pre>
+              <p>Equal teams give 50%. A 400-point gap gives about 91%. The Evil advantage is <span data-setting="evilAdvantage">0</span>.</p>
+            </li>
+            <li>
+              <h4>Zero-sum swings, scaled by team size</h4>
+              <pre>Good player:  +K × wG × (S − P)      wG = N / (2 × #Good)
+Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
+              <p>S is 1 if Good won, 0 if Evil won; K is <span data-setting="k">100</span>. A lone Evil player carries more of the swing than one of ten Good players, and total gains and losses cancel exactly, so the sum of all ratings never changes.</p>
+            </li>
+            <li>
+              <h4>The cap</h4>
+              <pre>f = MIN(1, K / MAX(|rawGood|, |rawEvil|))      final change = raw × f</pre>
+              <p>Example: 12 players, 10 Good and 2 Evil, equal teams, Evil wins. Raw change is Evil +150, Good −30. 150 exceeds 100, so f = 0.667 and the final change is Evil +100, Good −20. Still zero-sum: 2 × 100 = 10 × 20.</p>
+            </li>
+            <li>
+              <h4>Uncertainty</h4>
+              <pre>RD = 1 / √(1/RD0² + games × ln(10)² / 400² / 4)      range = Elo ± 1.96 × RD</pre>
+              <p>RD0 is <span data-setting="rd0">150</span>. Players under <span data-setting="provisionalGames">5</span> games show this 95% range. Treat it as a minimum: it assumes every game was a 50/50 matchup.</p>
+            </li>
+            <li>
+              <h4>Chess scale and titles</h4>
+              <pre>Chess Elo = MAX(100, 1500 + stretch × (Base Elo − 1000))</pre>
+              <p>The stretch is <span data-setting="chessStretch">3.96</span>, tuned so the #1 player lands near <span data-setting="chessTarget">2850</span>. Only the display changes; the swing cap stays in Base Elo points. <span id="suggestedStretch"></span></p>
+              <div id="titleTable" class="title-table"></div>
+            </li>
+            <li>
+              <h4>Aura</h4>
+              <pre>Aura = MAX(Base Elo − 1000, 0) × games played</pre>
+              <p>Aura rewards being good over a long stretch. It is just as valid as Elo: Elo measures the peak of your powers, Aura measures how long you have been wielding them.</p>
+            </li>
+            <li>
+              <h4>Tier lists</h4>
+              <p>Tiers compare a number to fixed cutoffs: S at or above the first, then A, B, C, D, otherwise F. Rookies are tiered by Elo percentile (share of rated players with a lower Elo), upsets by upset win rate, duos by win rate together.</p>
+              <div id="cutoffTable" class="title-table"></div>
+            </li>
+          </ol>
+          <p class="method-note">Travellers and Storytellers are not in the Win/Loss lists, so they are not rated for that game. Everything on this site recalculates from the Games Sheet the moment a game is added.</p>
+        </section>
+      </section>
     </main>
 
-    <dialog id="infoDialog" class="passcode-dialog"><div class="player-dialog-body"><div class="dialog-heading"><div><p id="infoDialogEyebrow" class="eyebrow">Details</p><h2 id="infoDialogTitle">Details</h2></div><button id="infoDialogClose" class="icon-button" aria-label="Close details" type="button">×</button></div><div id="infoDialogContent"></div></div></dialog>
-    <button id="eggButton" class="egg-button" type="button" title="Open grimoire" aria-label="Open game entry">ST</button>
+    <footer class="site-footer">
+      <p><span class="footer-mark">Ψ</span> Psi Press · Blood on the Clocktower · <span id="footerUpdated"></span></p>
+      <p class="footer-small">Blood on the Clocktower is a game by The Pandemonium Institute. This is an unofficial fan stats site.</p>
+    </footer>
 
-    <dialog id="playerDialog" class="player-dialog">
-      <div class="player-dialog-body">
+    <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+    <button id="eggButton" class="st-button" type="button" title="Storyteller: enter a game" aria-label="Storyteller: enter a game">ST</button>
+
+    <dialog id="infoDialog" class="dialog dialog-small">
+      <div class="dialog-body">
         <div class="dialog-heading">
-          <div>
-            <p class="eyebrow">Player Stats</p>
-            <h2 id="playerDialogName">Player</h2>
-          </div>
-          <button id="playerDialogClose" class="icon-button" aria-label="Close player stats" type="button">x</button>
+          <div><p id="infoDialogEyebrow" class="eyebrow">Details</p><h2 id="infoDialogTitle">Details</h2></div>
+          <button id="infoDialogClose" class="icon-button" aria-label="Close" type="button">×</button>
+        </div>
+        <div id="infoDialogContent"></div>
+      </div>
+    </dialog>
+
+    <dialog id="playerDialog" class="dialog dialog-large">
+      <div class="dialog-body">
+        <div class="dialog-heading">
+          <div class="profile-heading" id="playerDialogHeading"><h2 id="playerDialogName">Player</h2></div>
+          <button id="playerDialogClose" class="icon-button" aria-label="Close player profile" type="button">×</button>
         </div>
         <div id="playerDialogContent"></div>
       </div>
     </dialog>
 
-    <dialog id="gameDialog" class="player-dialog">
-      <div class="player-dialog-body">
+    <dialog id="gameDialog" class="dialog dialog-large">
+      <div class="dialog-body">
         <div class="dialog-heading">
-          <div>
-            <p class="eyebrow">Game Details</p>
-            <h2 id="gameDialogName">Game</h2>
-          </div>
-          <button id="gameDialogClose" class="icon-button" aria-label="Close game details" type="button">x</button>
+          <div><p class="eyebrow" id="gameDialogEyebrow">Game</p><h2 id="gameDialogName">Game</h2></div>
+          <button id="gameDialogClose" class="icon-button" aria-label="Close game details" type="button">×</button>
         </div>
         <div id="gameDialogContent"></div>
       </div>
     </dialog>
 
-    <dialog id="deleteDialog" class="passcode-dialog">
-      <form id="deleteForm" method="dialog">
+    <dialog id="deleteDialog" class="dialog dialog-small">
+      <form id="deleteForm" method="dialog" class="dialog-body">
         <div class="dialog-heading">
-          <div>
-            <p class="eyebrow">Delete Game</p>
-            <h2 id="deleteGameName">Confirm</h2>
-          </div>
-          <button class="icon-button" value="cancel" aria-label="Close" type="submit">x</button>
+          <div><p class="eyebrow">Delete game</p><h2 id="deleteGameName">Confirm</h2></div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">×</button>
         </div>
-        <p id="deleteGameSummary" class="delete-summary"></p>
-        <label class="passcode-field">
-          Passcode
-          <input id="deletePasscodeInput" type="password" autocomplete="current-password">
-        </label>
+        <p id="deleteGameSummary" class="section-copy"></p>
+        <label class="field field-block">Passcode<input id="deletePasscodeInput" type="password" autocomplete="current-password"></label>
         <div class="dialog-actions">
           <span id="deleteMessage" class="entry-message" role="status"></span>
-          <button class="secondary-button" value="cancel" type="submit">Cancel</button>
-          <button id="deleteConfirm" class="danger-button" type="button">Delete</button>
+          <button class="button button-ghost" value="cancel" type="submit">Cancel</button>
+          <button id="deleteConfirm" class="button button-danger" type="button">Delete</button>
         </div>
       </form>
     </dialog>
 
-    <dialog id="passcodeDialog" class="passcode-dialog">
-      <form id="passcodeForm" method="dialog">
+    <dialog id="passcodeDialog" class="dialog dialog-small">
+      <form id="passcodeForm" method="dialog" class="dialog-body">
         <div class="dialog-heading">
-          <div>
-            <p class="eyebrow">Storyteller</p>
-            <h2>Passcode</h2>
-          </div>
-          <button class="icon-button" value="cancel" aria-label="Close" type="submit">x</button>
+          <div><p class="eyebrow">Storyteller</p><h2>Passcode</h2></div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">×</button>
         </div>
-        <label class="passcode-field">
-          Passcode
-          <input id="passcodeInput" type="password" autocomplete="current-password">
-        </label>
+        <label class="field field-block">Passcode<input id="passcodeInput" type="password" autocomplete="current-password"></label>
         <div class="dialog-actions">
           <span id="passcodeMessage" class="entry-message" role="status"></span>
-          <button class="secondary-button" value="cancel" type="submit">Cancel</button>
-          <button id="passcodeSubmit" class="primary-button" type="button">Unlock</button>
+          <button class="button button-ghost" value="cancel" type="submit">Cancel</button>
+          <button id="passcodeSubmit" class="button button-gold" type="button">Unlock</button>
         </div>
       </form>
     </dialog>
 
-    <dialog id="entryDialog" class="entry-dialog">
-      <form id="entryForm" method="dialog">
+    <dialog id="entryDialog" class="dialog dialog-large">
+      <form id="entryForm" method="dialog" class="dialog-body">
         <div class="dialog-heading">
-          <div>
-            <p id="entryEyebrow" class="eyebrow">New result</p>
-            <h2 id="entryTitle">Enter Game</h2>
-          </div>
-          <button class="icon-button" value="cancel" aria-label="Close" type="submit">x</button>
+          <div><p id="entryEyebrow" class="eyebrow">New result</p><h2 id="entryTitle">Enter game</h2></div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">×</button>
         </div>
 
         <div class="form-grid">
-          <label>Date <input id="entryDate" name="date" type="date" required></label>
-          <label>Outcome
+          <label class="field field-block">Date <input id="entryDate" name="date" type="date" required></label>
+          <label class="field field-block">Winner
             <select id="entryOutcome" name="outcome" required>
               <option value="Good">Good</option>
               <option value="Evil">Evil</option>
             </select>
           </label>
-          <label>Final day
+          <label class="field field-block">Final day
             <select id="entryFinalDay" name="finalDay">
-              <option value="TRUE">TRUE</option>
-              <option value="FALSE">FALSE</option>
+              <option value="1">Yes</option>
+              <option value="0">No</option>
               <option value="">Blank</option>
             </select>
           </label>
-          <label>Storyteller <input id="entryStoryteller" name="storyteller" type="text" autocomplete="off"></label>
-          <label>Format
+          <label class="field field-block">Storyteller <input id="entryStoryteller" name="storyteller" type="text" autocomplete="off"></label>
+          <label class="field field-block">Format
             <select id="entryFormat" name="format">
               <option>In-Person</option>
               <option>Online</option>
             </select>
           </label>
-          <label>Script <input id="entryScript" name="script" type="text" list="scriptOptions" value="Trouble Brewing"></label>
+          <label class="field field-block">Script <input id="entryScript" name="script" type="text" list="scriptOptions" value="Trouble Brewing"></label>
         </div>
 
         <datalist id="scriptOptions"></datalist>
@@ -162,51 +503,46 @@
         <div class="entry-toolbar">
           <h3>Players</h3>
           <div class="entry-tools">
-            <label>
-              New player
-              <input id="newPlayerName" type="text" list="playerOptions" autocomplete="off" placeholder="Name">
-            </label>
-            <button id="addNewPlayer" class="secondary-button" type="button">Add new</button>
-            <label>
-              New role
-              <input id="newRoleName" type="text" list="roleOptions" autocomplete="off" placeholder="Role">
-            </label>
-            <button id="addNewRole" class="secondary-button" type="button">Add role</button>
-            <button id="addParticipant" class="secondary-button" type="button">Blank row</button>
+            <label class="field">New player<input id="newPlayerName" type="text" list="playerOptions" autocomplete="off" placeholder="Name"></label>
+            <button id="addNewPlayer" class="button button-ghost" type="button">Add new</button>
+            <label class="field">New role<input id="newRoleName" type="text" list="roleOptions" autocomplete="off" placeholder="Role"></label>
+            <button id="addNewRole" class="button button-ghost" type="button">Add role</button>
+            <button id="addParticipant" class="button button-ghost" type="button">Blank row</button>
           </div>
         </div>
         <div id="participantRows" class="participant-rows"></div>
+        <div id="entryPreview" class="entry-preview"></div>
 
         <div class="dialog-actions">
-          <button id="resetLocalGames" class="danger-button" type="button">Clear form</button>
+          <button id="resetLocalGames" class="button button-danger-ghost" type="button">Clear form</button>
           <span id="entryMessage" class="entry-message" role="status"></span>
-          <button class="secondary-button" value="cancel" type="submit">Cancel</button>
-          <button id="saveEntry" class="primary-button" type="button">Save game</button>
+          <button class="button button-ghost" value="cancel" type="submit">Cancel</button>
+          <button id="saveEntry" class="button button-gold" type="button">Save game</button>
         </div>
       </form>
     </dialog>
 
     <template id="participantTemplate">
       <div class="participant-row">
-        <label>Name <input data-field="name" type="text" list="playerOptions" autocomplete="off"></label>
-        <label>Role <input data-field="role" type="text" list="roleOptions" autocomplete="off"></label>
-        <label>Team
+        <label class="field field-block">Name <input data-field="name" type="text" list="playerOptions" autocomplete="off"></label>
+        <label class="field field-block">Role <input data-field="role" type="text" list="roleOptions" autocomplete="off"></label>
+        <label class="field field-block">Team
           <select data-field="alignment">
             <option value="auto">Auto</option>
             <option value="Good">Good</option>
             <option value="Evil">Evil</option>
           </select>
         </label>
-        <label>Result
+        <label class="field field-block">Result
           <select data-field="result">
             <option value="Win">Win</option>
             <option value="Loss">Loss</option>
           </select>
         </label>
-        <button class="icon-button remove-participant" type="button" aria-label="Remove player">x</button>
+        <button class="icon-button remove-participant" type="button" aria-label="Remove player">×</button>
       </div>
     </template>
 
-    <script src="app.js?v=20260725-2"></script>
+    <script type="module" src="app.js?v=20261122"></script>
   </body>
 </html>
