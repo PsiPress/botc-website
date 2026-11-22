@@ -183,7 +183,7 @@ function applyRuntimeMode() {
 
 function cacheElements() {
   const ids = [
-    "main", "skyLayer", "navToggle", "siteNav", "legendRohan", "legendNatalie", "rivalry", "compareA",
+    "main", "skyLayer", "navToggle", "siteNav", "legendRohan", "legendNatalie", "rivalry", "rivalryTitle", "compareA",
     "compareB", "duelChart", "statStrip", "latestGame", "recordStrip", "eloBoard", "auraBoard", "titleLadder",
     "leaderTable", "rookieTiers", "upsetTiers", "duoTiers", "playerSearch", "playerSort", "rosterGrid",
     "scriptFilter", "formatFilter", "outcomeFilter", "downloadRecord", "gamesTimeline", "gameTableBody", "issuesPanel",
@@ -254,8 +254,8 @@ function bindEvents() {
     renderLeaderTable();
   }));
 
-  els.compareA.addEventListener("change", () => { state.compare[0] = els.compareA.value; renderDuel(); });
-  els.compareB.addEventListener("change", () => { state.compare[1] = els.compareB.value; renderDuel(); });
+  els.compareA.addEventListener("change", () => { state.compare[0] = els.compareA.value; renderCompare(); });
+  els.compareB.addEventListener("change", () => { state.compare[1] = els.compareB.value; renderCompare(); });
   els.playerSearch.addEventListener("input", renderRoster);
   els.playerSort.addEventListener("change", renderRoster);
   els.scriptFilter.addEventListener("change", renderGames);
@@ -553,7 +553,6 @@ function renderHome() {
 
   els.legendRohan.innerHTML = day ? legendCard(day, false) : "";
   els.legendNatalie.innerHTML = night ? legendCard(night, true) : "";
-  renderRivalry(day, night);
 
   const options = model.players.filter(item => item.rated).sort((a, b) => a.name.localeCompare(b.name))
     .map(item => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)}</option>`).join("");
@@ -561,7 +560,7 @@ function renderHome() {
   els.compareB.innerHTML = options;
   els.compareA.value = state.compare[0];
   els.compareB.value = state.compare[1];
-  renderDuel();
+  renderCompare();
 
   const scripts = new Set(model.games.map(row => row.game.script).filter(Boolean));
   const upsets = model.games.filter(row => row.upset).length;
@@ -590,10 +589,17 @@ function legendCard(p, isNight) {
     <a class="button ${isNight ? "button-moon" : "button-gold"}" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Profile</a>`;
 }
 
-// Side-by-side comparison of the two legends: identical rows for both, better value highlighted.
+function renderCompare() {
+  renderRivalry(player(state.compare[0]), player(state.compare[1]));
+  renderDuel();
+}
+
+// Side-by-side comparison of the two players in the compare pickers (default: the two legends).
+// Identical rows for both, better value highlighted. Left uses the gold styling, right the lavender.
 function renderRivalry(day, night) {
-  if (!day || !night) {
-    els.rivalry.innerHTML = "";
+  els.rivalryTitle.textContent = day && night && day.slot !== night.slot ? `${day.name} vs. ${night.name}` : "Compare";
+  if (!day || !night || day.slot === night.slot) {
+    els.rivalry.innerHTML = `<p class="section-copy">Pick two different players.</p>`;
     return;
   }
   const sd = stat(day.name);
@@ -644,11 +650,6 @@ function renderRivalry(day, night) {
     </button>`;
   }).join("");
   els.rivalry.innerHTML = `
-    <div class="section-head">
-      <div>
-        <h2 id="rivalryTitle">${escapeHtml(day.name)} vs. ${escapeHtml(night.name)}</h2>
-      </div>
-    </div>
     <table class="tape">
       <thead>
         <tr>
@@ -664,7 +665,7 @@ function renderRivalry(day, night) {
         <tr class="tape-shared"><td colspan="3">Same team: ${wl(h2h.togetherWins, together - h2h.togetherWins)}${together ? ` <small>Elo expected ${fmtPct(expectedTogether / together)}</small>` : ""}</td></tr>
       </tbody>
     </table>
-    <div class="medal-track" aria-label="Shared games, oldest first">${medallions || `<p class="section-copy">No shared games yet.</p>`}</div>
+    <div class="medal-track" aria-label="Shared games, oldest first">${medallions || `<p class="section-copy">No games together yet.</p>`}</div>
     <div class="medal-legend">
       <span><i class="medal-key medal-day"></i>${escapeHtml(day.name)} beat ${escapeHtml(night.name)}</span>
       <span><i class="medal-key medal-night"></i>${escapeHtml(night.name)} beat ${escapeHtml(day.name)}</span>

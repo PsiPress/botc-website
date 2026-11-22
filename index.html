@@ -115,18 +115,25 @@
           <article class="legend legend-night" id="legendNatalie"></article>
         </section>
 
-        <section class="rivalry panel" id="rivalry" aria-labelledby="rivalryTitle"></section>
+        <section class="rivalry panel" aria-labelledby="rivalryTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="rivalryTitle">Compare</h2>
+            </div>
+            <div class="compare-pickers">
+              <label class="field"><span class="dot dot-day"></span><select id="compareA" aria-label="First player"></select></label>
+              <span class="compare-vs">vs</span>
+              <label class="field"><span class="dot dot-night"></span><select id="compareB" aria-label="Second player"></select></label>
+            </div>
+          </div>
+          <div id="rivalry"></div>
+        </section>
 
         <section class="panel duel" aria-labelledby="duelTitle">
           <div class="section-head">
             <div>
               <h2 id="duelTitle">Rating over time</h2>
               <p class="section-copy">Base Elo after each game.</p>
-            </div>
-            <div class="compare-pickers">
-              <label class="field"><span class="dot dot-day"></span><select id="compareA" aria-label="First player"></select></label>
-              <span class="compare-vs">vs</span>
-              <label class="field"><span class="dot dot-night"></span><select id="compareB" aria-label="Second player"></select></label>
             </div>
           </div>
           <div id="duelChart" class="chart-host"></div>
