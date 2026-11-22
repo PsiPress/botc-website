@@ -82,10 +82,12 @@ Routing is hash based: `#home`, `#rankings`, `#tiers`, `#players`, `#games`, `#s
 - **Tier Lists**: Rookie, Upset and Duo tier lists as S-F rows of chips. Duo chips open a duo dialog with every shared game.
 - **Players**: every participant as a card (sigil, chess Elo, title, sparkline, rank badges), searchable by name or character, sortable. Cards open the profile: rating tiles, distance to next title, Elo history chart, characters, most frequent teammates, all Player Stats spreadsheet metrics, and a game-by-game table with team win chance and Elo change.
 - **Games**: forecast-vs-result timeline chart, filters (script, format, winner), ledger with an Elo forecast bar and Upset tag per game, CSV download, and a collapsible Data QA panel. Game popups show both teams with each player's Elo before/after.
-- **Statistics**: the Oracle matchup simulator (tap players into Good/Evil; uses `previewMatchup`, swing cap included), player/character record lookup, Good/Evil wins per script with the Elo expectation tick, and most-played characters.
+- **Statistics**: matchup forecast (tap players into Good/Evil; uses `previewMatchup`, swing cap included), player/character record lookup, Good/Evil wins per script with the Elo expectation tick, and most-played characters.
 - **About**: club copy (counts are live), facts, and "How the ratings work" with the formulas, title table and tier cutoffs.
 
 The Awards, Events and Gallery placeholder pages and the roster photo placeholders were removed by request (2026-11). Do not reintroduce placeholder content.
+
+Copy style (requested 2026-11): keep UI text terse. No flavor sentences, no decorative eyebrow labels that repeat the heading, no sentences that restate numbers already shown, and no usage instructions beyond what a control needs (for example "Tap a player to cycle Good → Evil → out"). Keep short definitions where a metric needs one (tier minimums, chart legends, rating formulas). The deliberate jokes are "Natalie is god.", the live "Rohan is merely a …" line, and Natalie's ∞ divine rating.
 
 ## Rating Engine (`ratings.js`)
 

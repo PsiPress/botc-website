@@ -45,10 +45,10 @@
           <div class="hero-copy">
             <p class="eyebrow">Psi Press presents</p>
             <h1 id="heroTitle"><span class="hero-line hero-line-night">Natalie is god.</span><span class="hero-line hero-line-day">Rohan is merely a grandmaster.</span></h1>
-            <p class="hero-lead">Hyde Park’s most unserious Blood on the Clocktower group. <span id="heroCount">Every game</span>, one rating ladder, and two legends who rule this town: one by the numbers, one by divine right.</p>
+            <p class="hero-lead">Hyde Park’s most unserious Blood on the Clocktower group.</p>
             <div class="hero-actions">
-              <a class="button button-gold" href="#rankings">See the rankings</a>
-              <a class="button button-ghost" href="#games">Enter the archive <span aria-hidden="true">→</span></a>
+              <a class="button button-gold" href="#rankings">Rankings</a>
+              <a class="button button-ghost" href="#games">All games <span aria-hidden="true">→</span></a>
             </div>
           </div>
           <div class="hero-art" aria-hidden="true">
@@ -120,9 +120,8 @@
         <section class="panel duel" aria-labelledby="duelTitle">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Two lines across the sky</p>
               <h2 id="duelTitle">Rating over time</h2>
-              <p class="section-copy">Base Elo after every rated game. Hover or tap the chart to scrub through history, or swap in anyone else.</p>
+              <p class="section-copy">Base Elo after each game.</p>
             </div>
             <div class="compare-pickers">
               <label class="field"><span class="dot dot-day"></span><select id="compareA" aria-label="First player"></select></label>
@@ -140,8 +139,8 @@
             <nav class="portal-grid" aria-label="Explore">
               <a class="portal" href="#rankings"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 32h24M12 32V20h5v12M18 32V10h5v22M24 32V16h5v16" fill="none" stroke="currentColor" stroke-width="2"/></svg><strong>Rankings</strong><small>Elo ladder &amp; Aura</small></a>
               <a class="portal" href="#tiers"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24M8 20h16M8 30h9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><strong>Tier lists</strong><small>Rookies, upsets, duos</small></a>
-              <a class="portal" href="#players"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 33c1.5-6 6-9 11-9s9.5 3 11 9" fill="none" stroke="currentColor" stroke-width="2"/></svg><strong>Players</strong><small>Profiles &amp; histories</small></a>
-              <a class="portal" href="#stats"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20 L27 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="20" cy="20" r="2" fill="currentColor"/></svg><strong>The Oracle</strong><small>Predict any matchup</small></a>
+              <a class="portal" href="#players"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 33c1.5-6 6-9 11-9s9.5 3 11 9" fill="none" stroke="currentColor" stroke-width="2"/></svg><strong>Players</strong><small>Profiles</small></a>
+              <a class="portal" href="#stats"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20 L27 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="20" cy="20" r="2" fill="currentColor"/></svg><strong>Forecast</strong><small>Any matchup</small></a>
             </nav>
           </div>
         </section>
@@ -150,17 +149,15 @@
       <!-- RANKINGS -->
       <section class="view" data-view="rankings" aria-labelledby="rankingsTitle">
         <div class="page-head">
-          <p class="eyebrow">The ladder</p>
           <h2 id="rankingsTitle">Rankings</h2>
-          <p class="section-copy">Two equally valid ways to be great. <strong>Elo</strong> says how good you are right now. <strong>Aura</strong> says how good you have been, for how long. Players need <span data-setting="leaderboardMin">3</span> games to appear.</p>
+          <p class="section-copy">Minimum <span data-setting="leaderboardMin">3</span> games.</p>
         </div>
         <div class="record-strip" id="recordStrip"></div>
         <div class="boards">
           <section class="panel board" aria-labelledby="eloBoardTitle">
             <div class="board-head">
               <div>
-                <p class="eyebrow">Elo</p>
-                <h3 id="eloBoardTitle">The Elo ladder</h3>
+                <h3 id="eloBoardTitle">Elo</h3>
               </div>
               <div class="segmented" role="group" aria-label="Rating scale">
                 <button type="button" class="is-active" data-scale="chess">Chess scale</button>
@@ -172,8 +169,7 @@
           <section class="panel board" aria-labelledby="auraBoardTitle">
             <div class="board-head">
               <div>
-                <p class="eyebrow">Aura</p>
-                <h3 id="auraBoardTitle">The Aura leaderboard</h3>
+                <h3 id="auraBoardTitle">Aura</h3>
               </div>
               <p class="board-formula">(Elo − 1000) × games</p>
             </div>
@@ -183,9 +179,7 @@
         <section class="panel" aria-labelledby="ladderTitle">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Chess titles</p>
-              <h3 id="ladderTitle">Where everyone sits on the chess ladder</h3>
-              <p class="section-copy">Base Elo stretched onto the chess scale, so an average player shows 1500. Same formula for everyone.</p>
+              <h3 id="ladderTitle">Chess titles</h3>
             </div>
           </div>
           <div id="titleLadder" class="chart-host"></div>
@@ -193,7 +187,6 @@
         <section class="panel" aria-labelledby="fullTableTitle">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Everything</p>
               <h3 id="fullTableTitle">Full leaderboard</h3>
             </div>
           </div>
@@ -213,20 +206,18 @@
       <!-- TIERS -->
       <section class="view" data-view="tiers" aria-labelledby="tiersTitle">
         <div class="page-head">
-          <p class="eyebrow">S through F</p>
           <h2 id="tiersTitle">Tier lists</h2>
-          <p class="section-copy">Rookies, upsets and duos, ranked against the cutoffs from the Tier Lists tab. Tap any chip for the numbers behind it.</p>
         </div>
         <section class="panel tier-section" aria-labelledby="rookieTitle">
-          <div class="section-head"><div><p class="eyebrow">Fresh blood</p><h3 id="rookieTitle">Rookie tier list</h3><p class="section-copy">The five newest players, best Elo first. Tier is where their Base Elo sits among every rated player.</p></div></div>
+          <div class="section-head"><div><h3 id="rookieTitle">Rookies</h3><p class="section-copy">The five newest players, tiered by Elo percentile.</p></div></div>
           <div id="rookieTiers"></div>
         </section>
         <section class="panel tier-section" aria-labelledby="upsetTitle">
-          <div class="section-head"><div><p class="eyebrow">Against the odds</p><h3 id="upsetTitle">Upset tier list</h3><p class="section-copy">Who wins when their team is the underdog (Elo-predicted win chance under 50%). Minimum <span data-setting="minUnderdogGames">3</span> underdog games.</p></div></div>
+          <div class="section-head"><div><h3 id="upsetTitle">Upsets</h3><p class="section-copy">Win rate when Elo gave their team under 50%. Minimum <span data-setting="minUnderdogGames">3</span> such games.</p></div></div>
           <div id="upsetTiers"></div>
         </section>
         <section class="panel tier-section" aria-labelledby="duoTitle">
-          <div class="section-head"><div><p class="eyebrow">Better together</p><h3 id="duoTitle">Best duos</h3><p class="section-copy">Pairs on the same team at least <span data-setting="minDuoGames">4</span> times, ranked by win rate, then wins. The badge shows how far they beat (or missed) what Elo expected.</p></div></div>
+          <div class="section-head"><div><h3 id="duoTitle">Duos</h3><p class="section-copy">Win rate on the same team, minimum <span data-setting="minDuoGames">4</span> games. Badge: points above or below the Elo forecast.</p></div></div>
           <div id="duoTiers"></div>
         </section>
       </section>
@@ -235,9 +226,7 @@
       <section class="view" data-view="players" aria-labelledby="playersTitle">
         <div class="page-head page-head-row">
           <div>
-            <p class="eyebrow">The circle</p>
             <h2 id="playersTitle">Players</h2>
-            <p class="section-copy" id="playersCopy">Everyone who has sat in the circle.</p>
           </div>
           <div class="toolbar">
             <label class="field">Search<input id="playerSearch" type="search" placeholder="Name or character" autocomplete="off"></label>
@@ -260,9 +249,7 @@
       <section class="view" data-view="games" aria-labelledby="gamesTitle">
         <div class="page-head page-head-row">
           <div>
-            <p class="eyebrow">The archive</p>
-            <h2 id="gamesTitle">Every game played</h2>
-            <p class="section-copy">Drawn from the Games Sheet. Each row shows what Elo predicted before the first night.</p>
+            <h2 id="gamesTitle">Games</h2>
           </div>
           <div class="toolbar">
             <label class="field">Script<select id="scriptFilter"><option value="">All scripts</option></select></label>
@@ -284,16 +271,13 @@
       <!-- STATISTICS -->
       <section class="view" data-view="stats" aria-labelledby="statsTitle">
         <div class="page-head">
-          <p class="eyebrow">Read the signs</p>
           <h2 id="statsTitle">Statistics</h2>
-          <p class="section-copy">Predict a matchup, look up any player or character, and see how each script treats each team.</p>
         </div>
         <section class="panel oracle" aria-labelledby="oracleTitle">
           <div class="section-head">
             <div>
-              <p class="eyebrow">The Oracle</p>
               <h3 id="oracleTitle">Matchup forecast</h3>
-              <p class="section-copy">Tap players to cycle them through <span class="tag tag-good">Good</span> → <span class="tag tag-evil">Evil</span> → out. The Oracle uses the same formula as the ratings, swing cap included.</p>
+              <p class="section-copy">Tap a player to cycle <span class="tag tag-good">Good</span> → <span class="tag tag-evil">Evil</span> → out.</p>
             </div>
             <div class="toolbar">
               <button class="button button-ghost" type="button" id="oracleRandom">Random teams</button>
@@ -307,8 +291,7 @@
         </section>
         <div class="stats-grid">
           <section class="panel" aria-labelledby="lookupTitle">
-            <p class="eyebrow">Lookup</p>
-            <h3 id="lookupTitle">Player or character record</h3>
+            <h3 id="lookupTitle">Lookup</h3>
             <div class="toolbar toolbar-left">
               <label class="field">Player<select id="statsPlayer"><option value="">Choose a player</option></select></label>
               <label class="field">Character<select id="statsRole"><option value="">Choose a character</option></select></label>
@@ -316,17 +299,15 @@
             <div id="statisticsResults" class="lookup-results"></div>
           </section>
           <section class="panel" aria-labelledby="scriptTitle">
-            <p class="eyebrow">Scripts</p>
-            <h3 id="scriptTitle">Who wins on each script</h3>
+            <h3 id="scriptTitle">By script</h3>
             <div id="scriptBreakdown"></div>
           </section>
         </div>
         <section class="panel" aria-labelledby="roleTitle">
           <div class="section-head">
             <div>
-              <p class="eyebrow">The grimoire</p>
               <h3 id="roleTitle">Most played characters</h3>
-              <p class="section-copy">Bar length is times played; the colour split shows how often that character ended on the winning side.</p>
+              <p class="section-copy">Gold share: games won.</p>
             </div>
           </div>
           <div id="roleBreakdown" class="role-breakdown"></div>
@@ -336,7 +317,6 @@
       <!-- ABOUT -->
       <section class="view" data-view="about" aria-labelledby="aboutTitle">
         <div class="page-head">
-          <p class="eyebrow">Lore</p>
           <h2 id="aboutTitle">Why is there Blood on my Clocktower??</h2>
         </div>
         <div class="about-grid">
@@ -347,49 +327,48 @@
           <article class="panel prose about-facts" id="aboutFacts"></article>
         </div>
         <section class="panel prose method" aria-labelledby="methodTitle">
-          <p class="eyebrow">Method</p>
           <h3 id="methodTitle">How the ratings work</h3>
           <ol class="method-steps">
             <li>
               <h4>Team strength and win chance</h4>
-              <p>Each game is Good vs Evil, read from the Win and Loss lists. A team’s rating is the average Base Elo of its players going into the game.</p>
+              <p>Teams come from the Win and Loss lists. A team’s rating is its players’ average Base Elo going into the game.</p>
               <pre>P(Good wins) = 1 / (1 + 10^((EvilAvg + EvilAdvantage − GoodAvg) / 400))</pre>
-              <p>Equal teams give 50%. A 400-point gap gives about 91%. The Evil advantage is <span data-setting="evilAdvantage">0</span>.</p>
+              <p>Equal teams: 50%. A 400-point gap: about 91%. Evil advantage: <span data-setting="evilAdvantage">0</span>.</p>
             </li>
             <li>
               <h4>Zero-sum swings, scaled by team size</h4>
               <pre>Good player:  +K × wG × (S − P)      wG = N / (2 × #Good)
 Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
-              <p>S is 1 if Good won, 0 if Evil won; K is <span data-setting="k">100</span>. A lone Evil player carries more of the swing than one of ten Good players, and total gains and losses cancel exactly, so the sum of all ratings never changes.</p>
+              <p>S is 1 if Good won, else 0. K is <span data-setting="k">100</span>. Smaller teams swing more per player, and gains and losses always cancel.</p>
             </li>
             <li>
               <h4>The cap</h4>
               <pre>f = MIN(1, K / MAX(|rawGood|, |rawEvil|))      final change = raw × f</pre>
-              <p>Example: 12 players, 10 Good and 2 Evil, equal teams, Evil wins. Raw change is Evil +150, Good −30. 150 exceeds 100, so f = 0.667 and the final change is Evil +100, Good −20. Still zero-sum: 2 × 100 = 10 × 20.</p>
+              <p>Example: 10 Good vs 2 Evil, equal teams, Evil wins. Raw change is Evil +150, Good −30, so f = 0.667: Evil +100, Good −20.</p>
             </li>
             <li>
               <h4>Uncertainty</h4>
               <pre>RD = 1 / √(1/RD0² + games × ln(10)² / 400² / 4)      range = Elo ± 1.96 × RD</pre>
-              <p>RD0 is <span data-setting="rd0">150</span>. Players under <span data-setting="provisionalGames">5</span> games show this 95% range. Treat it as a minimum: it assumes every game was a 50/50 matchup.</p>
+              <p>RD0 is <span data-setting="rd0">150</span>. Shown for players under <span data-setting="provisionalGames">5</span> games. It assumes even matchups, so read it as a minimum.</p>
             </li>
             <li>
               <h4>Chess scale and titles</h4>
               <pre>Chess Elo = MAX(100, 1500 + stretch × (Base Elo − 1000))</pre>
-              <p>The stretch is <span data-setting="chessStretch">3.96</span>, tuned so the #1 player lands near <span data-setting="chessTarget">2850</span>. Only the display changes; the swing cap stays in Base Elo points. <span id="suggestedStretch"></span></p>
+              <p>Stretch is <span data-setting="chessStretch">3.96</span>, which puts the top player near <span data-setting="chessTarget">2850</span>. Display only.</p>
               <div id="titleTable" class="title-table"></div>
             </li>
             <li>
               <h4>Aura</h4>
               <pre>Aura = MAX(Base Elo − 1000, 0) × games played</pre>
-              <p>Aura rewards being good over a long stretch. It is just as valid as Elo: Elo measures the peak of your powers, Aura measures how long you have been wielding them.</p>
+              <p>Rewards staying above 1000 over many games.</p>
             </li>
             <li>
               <h4>Tier lists</h4>
-              <p>Tiers compare a number to fixed cutoffs: S at or above the first, then A, B, C, D, otherwise F. Rookies are tiered by Elo percentile (share of rated players with a lower Elo), upsets by upset win rate, duos by win rate together.</p>
+              <p>S at or above the first cutoff, then A to D, otherwise F.</p>
               <div id="cutoffTable" class="title-table"></div>
             </li>
           </ol>
-          <p class="method-note">Travellers and Storytellers are not in the Win/Loss lists, so they are not rated for that game. Everything on this site recalculates from the Games Sheet the moment a game is added.</p>
+          <p class="method-note">Travellers and Storytellers aren’t in the Win/Loss lists, so they aren’t rated.</p>
         </section>
       </section>
     </main>

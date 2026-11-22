@@ -183,12 +183,12 @@ function applyRuntimeMode() {
 
 function cacheElements() {
   const ids = [
-    "main", "skyLayer", "navToggle", "siteNav", "heroCount", "legendRohan", "legendNatalie", "rivalry", "compareA",
+    "main", "skyLayer", "navToggle", "siteNav", "legendRohan", "legendNatalie", "rivalry", "compareA",
     "compareB", "duelChart", "statStrip", "latestGame", "recordStrip", "eloBoard", "auraBoard", "titleLadder",
-    "leaderTable", "rookieTiers", "upsetTiers", "duoTiers", "playersCopy", "playerSearch", "playerSort", "rosterGrid",
+    "leaderTable", "rookieTiers", "upsetTiers", "duoTiers", "playerSearch", "playerSort", "rosterGrid",
     "scriptFilter", "formatFilter", "outcomeFilter", "downloadRecord", "gamesTimeline", "gameTableBody", "issuesPanel",
     "oraclePool", "oracleResult", "oracleRandom", "oracleClear", "statsPlayer", "statsRole", "statisticsResults",
-    "scriptBreakdown", "roleBreakdown", "aboutCopy", "aboutFacts", "suggestedStretch", "titleTable", "cutoffTable",
+    "scriptBreakdown", "roleBreakdown", "aboutCopy", "aboutFacts", "titleTable", "cutoffTable",
     "footerUpdated", "tooltip", "eggButton", "infoDialog", "infoDialogEyebrow", "infoDialogTitle", "infoDialogContent",
     "infoDialogClose", "playerDialog", "playerDialogHeading", "playerDialogContent", "playerDialogClose", "gameDialog",
     "gameDialogEyebrow", "gameDialogName", "gameDialogContent", "gameDialogClose", "deleteDialog", "deleteForm",
@@ -543,7 +543,6 @@ function renderHome() {
   const model = state.model;
   const day = player(LEGENDS.day);
   const night = player(LEGENDS.night);
-  els.heroCount.textContent = `${model.record.gamesRated} games, ${model.record.playersRated} players`;
   const dayLine = document.querySelector(".hero-line-day");
   if (day && dayLine) {
     const full = (TITLE_NAMES[day.title] || day.title).toLowerCase();
@@ -566,16 +565,14 @@ function renderHome() {
   els.compareB.value = state.compare[1];
   renderDuel();
 
-  const scripts = countBy(model.games.map(row => row.game.script).filter(Boolean));
-  const topScript = [...scripts.entries()].sort((a, b) => b[1] - a[1])[0];
+  const scripts = new Set(model.games.map(row => row.game.script).filter(Boolean));
   const upsets = model.games.filter(row => row.upset).length;
   els.statStrip.innerHTML = [
-    statTile(model.record.gamesRated, "Games rated"),
-    statTile(model.record.playersRated, "Players rated"),
+    statTile(model.record.gamesRated, "Games"),
+    statTile(model.record.playersRated, "Players"),
     statTile(Math.round((model.record.goodWinRate || 0) * 100), "Good win rate", "%"),
-    statTile(upsets, "Upsets", "", "Games the Elo underdog won"),
-    statTile(scripts.size, "Scripts", "", topScript ? `Most played: ${topScript[0]}` : ""),
-    statTile(Math.round(model.record.totalRating), "Rating in the pool", "", "Zero-sum: never created or destroyed"),
+    statTile(upsets, "Underdog wins"),
+    statTile(scripts.size, "Scripts"),
   ].join("");
 
   const last = model.games.at(-1);
@@ -585,24 +582,24 @@ function renderHome() {
 function legendDay(p) {
   const s = stat(p.name);
   const nextAura = state.model.aura.find(entry => entry.name !== p.name);
-  const auraLead = p.auraRank === 1 && nextAura?.aura ? `${(p.aura / nextAura.aura).toFixed(1)}× the next best` : p.auraRank ? `#${p.auraRank} all-time` : "";
+  const auraLead = p.auraRank === 1 && nextAura?.aura ? `${(p.aura / nextAura.aura).toFixed(1)}× second place` : p.auraRank ? `#${p.auraRank}` : "";
   const facts = [
     `<li><strong>${fmtInt(p.aura)}</strong> Aura${auraLead ? ` <span>${auraLead}</span>` : ""}</li>`,
     `<li><strong>${p.wins}–${p.losses}</strong> record <span>${p.evilWins}–${p.evilLosses} as Evil, ${p.goodWins}–${p.goodLosses} as Good</span></li>`,
-    p.underdogGames ? `<li><strong>${p.upsetWins} of ${p.underdogGames}</strong> underdog games won <span>${fmtPct(p.upsetRate)} upset rate</span></li>` : "",
-    `<li>Peaked at <strong>${fmtInt(p.chessPeak)}</strong> <span>${p.chessPeak > 2882 ? "Carlsen topped out at 2,882" : "on the chess scale"}</span></li>`,
-    s?.storyteller ? `<li>Storyteller <strong>${s.storyteller}×</strong> <span>when not winning, narrating</span></li>` : "",
+    p.underdogGames ? `<li><strong>${p.upsetWins} of ${p.underdogGames}</strong> underdog games won</li>` : "",
+    `<li>Peak <strong>${fmtInt(p.chessPeak)}</strong></li>`,
+    s?.storyteller ? `<li>Storyteller <strong>${s.storyteller}×</strong></li>` : "",
   ].join("");
   const ranks = [p.rank ? `#${p.rank} Elo` : "", p.auraRank ? `#${p.auraRank} Aura` : ""].filter(Boolean).join(" · ");
   return `
     <div class="legend-emblem">${sigilSvg(p.name, 92)}</div>
-    <p class="eyebrow">The Day${ranks ? ` · ${ranks}` : ""}</p>
+    ${ranks ? `<p class="eyebrow">${ranks}</p>` : ""}
     <h2 class="legend-name">${escapeHtml(p.name)}</h2>
     <p class="legend-title">${escapeHtml(TITLE_NAMES[p.title] || p.title)}</p>
     <div class="legend-figure"><span class="legend-number" data-count="${Math.round(p.chess)}">${fmtInt(p.chess)}</span><small>Chess Elo<br>Base ${fmtInt(p.elo)}</small></div>
     <ul class="legend-facts">${facts}</ul>
     <div class="legend-spark"></div>
-    <a class="button button-gold" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Open ${escapeHtml(p.name)}’s profile</a>`;
+    <a class="button button-gold" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Profile</a>`;
 }
 
 function legendNight(p) {
@@ -618,21 +615,21 @@ function legendNight(p) {
   const lastBeat = beatDay.at(-1);
   const lastBeatRole = lastBeat ? lastBeat.row.game.roles[Object.keys(lastBeat.row.game.roles).find(key => nameKey(key) === nameKey(p.name))] : "";
   const facts = [
-    `<li><strong>${p.games}</strong> games in the circle <span>${tied ? "tied " : ""}${ordinal(gamesRank)} most</span></li>`,
+    `<li><strong>${p.games}</strong> games <span>${tied ? "tied " : ""}${ordinal(gamesRank)} most</span></li>`,
     s?.demonGames ? `<li><strong>${s.demonGames}×</strong> the Demon <span>${demonList(s)}</span></li>` : "",
-    capWins ? `<li>${capFact(capWins, capEvil, p)} <span>The biggest swing the rules allow</span></li>` : biggest ? `<li>Best night: <strong>${fmtSigned(biggest.change)}</strong> <span>${shortDate(biggest.game.date)}</span></li>` : "",
-    lastBeat ? `<li>Beat ${escapeHtml(LEGENDS.day)} head-to-head <strong>${beatDay.length}×</strong> <span>most recently ${lastBeatRole ? `as the ${escapeHtml(lastBeatRole)}, ` : ""}${shortDate(lastBeat.row.game.date)}</span></li>` : "",
-    s?.storyteller ? `<li>Storyteller <strong>${s.storyteller}×</strong> <span>gods occasionally run the world directly</span></li>` : "",
+    capWins ? `<li>${capFact(capWins, capEvil, p)}</li>` : biggest ? `<li>Best night: <strong>${fmtSigned(biggest.change)}</strong> <span>${shortDate(biggest.game.date)}</span></li>` : "",
+    lastBeat ? `<li>Beat ${escapeHtml(LEGENDS.day)}${beatDay.length > 1 ? ` <strong>${beatDay.length}×</strong>` : ""}${lastBeatRole ? ` as the <strong>${escapeHtml(lastBeatRole)}</strong>` : ""} <span>${beatDay.length > 1 ? "last on " : ""}${shortDate(lastBeat.row.game.date)}</span></li>` : "",
+    s?.storyteller ? `<li>Storyteller <strong>${s.storyteller}×</strong></li>` : "",
   ].join("");
   return `
     <div class="legend-emblem">${sigilSvg(p.name, 92)}</div>
-    <p class="eyebrow">The Night · Deity in residence</p>
+    ${p.rank ? `<p class="eyebrow">#${p.rank} Elo</p>` : ""}
     <h2 class="legend-name">${escapeHtml(p.name)}</h2>
     <p class="legend-title">god</p>
-    <div class="legend-figure"><span class="legend-number legend-infinity">∞</span><small>Divine rating<br>Mortal Elo ${fmtInt(p.chess)}</small></div>
+    <div class="legend-figure"><span class="legend-number legend-infinity">∞</span><small>Divine rating<br>Chess Elo ${fmtInt(p.chess)}</small></div>
     <ul class="legend-facts">${facts}</ul>
     <div class="legend-spark"></div>
-    <a class="button button-moon" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Open ${escapeHtml(p.name)}’s profile</a>`;
+    <a class="button button-moon" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Profile</a>`;
 }
 
 function capFact(capWins, capEvil, p) {
@@ -677,15 +674,10 @@ function renderRivalry(day, night) {
     </button>`;
   }).join("");
   const together = h2h.together;
-  const narrative = together || h2h.opposed
-    ? `${escapeHtml(day.name)} and ${escapeHtml(night.name)} have shared ${h2h.games.length} games. On opposite teams it is ${h2h.aWins}–${h2h.bWins} ${h2h.aWins >= h2h.bWins ? `to ${escapeHtml(day.name)}` : `to ${escapeHtml(night.name)}`}. On the same team they are ${h2h.togetherWins}–${together - h2h.togetherWins}, against an Elo expectation of ${fmtPct(together ? expectedTogether / together : null)}: the sun and the moon were not meant to share a sky.`
-    : `${escapeHtml(day.name)} and ${escapeHtml(night.name)} have not yet shared a game.`;
   els.rivalry.innerHTML = `
     <div class="section-head">
       <div>
-        <p class="eyebrow">Sun versus moon</p>
-        <h2 id="rivalryTitle">The rivalry</h2>
-        <p class="section-copy">${narrative}</p>
+        <h2 id="rivalryTitle">Head to head</h2>
       </div>
     </div>
     <div class="rivalry-grid">
@@ -699,7 +691,7 @@ function renderRivalry(day, night) {
         <div class="score-names"><span>${escapeHtml(day.name)}</span><span>${escapeHtml(night.name)}</span></div>
       </div>
       <div class="rivalry-score">
-        <p class="rivalry-label">Same team</p>
+        <p class="rivalry-label">Same team${together ? ` · Elo expected ${fmtPct(expectedTogether / together)}` : ""}</p>
         <div class="score-line">
           <span class="score score-both" data-count="${h2h.togetherWins}">${h2h.togetherWins}</span>
           <span class="score-sep">–</span>
@@ -748,11 +740,14 @@ function latestGameCard(row) {
   const movers = row.sides.map((side, slot) => ({ side, slot, change: row.changes[slot] })).filter(item => item.side);
   const top = movers.sort((a, b) => b.change - a.change)[0];
   const topName = top ? state.model.slots[top.slot] : "";
-  const winnerChance = row.winSide === 1 ? row.pNumber : 1 - row.pNumber;
+  const details = [
+    game.storyteller ? `Storyteller: ${escapeHtml(game.storyteller)}` : "",
+    topName ? `Biggest gain: ${escapeHtml(topName)} ${fmtSigned(top.change)}` : "",
+  ].filter(Boolean).join(" · ");
   return `
     <p class="eyebrow">Latest game · ${escapeHtml(longDate(game.date))}</p>
-    <h3>${escapeHtml(game.script || "Game")} <span class="tag ${game.outcome === "Good" ? "tag-good" : "tag-evil"}">${escapeHtml(game.outcome)} won</span></h3>
-    <p class="section-copy">${row.goodCount + row.evilCount} rated players${game.storyteller ? `, told by ${escapeHtml(game.storyteller)}` : ""}. Elo gave the winners ${fmtPct(winnerChance)}${row.upset ? ", so it goes down as an upset" : ""}.${topName ? ` Biggest gain: ${escapeHtml(topName)} ${fmtSigned(top.change)}.` : ""}</p>
+    <h3>${escapeHtml(game.script || "Game")} <span class="tag ${game.outcome === "Good" ? "tag-good" : "tag-evil"}">${escapeHtml(game.outcome)} won</span>${row.upset ? ` <span class="tag tag-upset">Upset</span>` : ""}</h3>
+    ${details ? `<p class="section-copy">${details}</p>` : ""}
     ${forecastBar(row)}
     <button class="button button-ghost" type="button" data-game="${escapeHtml(game.id)}">Open game</button>`;
 }
@@ -762,10 +757,10 @@ function latestGameCard(row) {
 function renderRankings() {
   const r = state.model.record;
   els.recordStrip.innerHTML = [
-    statTile(r.gamesRated, "Games rated"),
-    statTile(r.playersRated, "Players rated"),
-    statTile(r.playersOnLeaderboard, "On the leaderboard"),
-    statTile(Math.round((r.goodWinRate || 0) * 100), "Good win rate", "%", r.suggestedEvilAdvantage !== null ? `Implies an Evil edge of ${fmtInt(r.suggestedEvilAdvantage)} pts` : ""),
+    statTile(r.gamesRated, "Games"),
+    statTile(r.playersRated, "Players"),
+    statTile(r.playersOnLeaderboard, "Listed"),
+    statTile(Math.round((r.goodWinRate || 0) * 100), "Good win rate", "%"),
   ].join("");
   renderEloBoard();
   renderAuraBoard();
@@ -920,8 +915,6 @@ function renderRoster() {
     if (sort === "recent") return recent(b) - recent(a) || a.s.player.localeCompare(b.s.player);
     return (b.p?.rated ? 1 : 0) - (a.p?.rated ? 1 : 0) || (b.p?.onLeaderboard ? 1 : 0) - (a.p?.onLeaderboard ? 1 : 0) || (b.p?.elo || 0) - (a.p?.elo || 0);
   });
-  const total = state.stats.filter(s => s.games + s.travelsGood + s.travelsEvil > 0).length;
-  els.playersCopy.textContent = `${total} people have sat in the circle. Tap anyone for their full history.`;
   els.rosterGrid.innerHTML = people.map(({ s, p }) => {
     const rated = p?.rated;
     const badges = [p?.rank ? `<span class="badge">#${p.rank} Elo</span>` : "", p?.auraRank ? `<span class="badge badge-aura">#${p.auraRank} Aura</span>` : "", rated && !p.onLeaderboard ? `<span class="badge badge-muted">Unlisted</span>` : ""].join("");
@@ -1030,7 +1023,7 @@ function renderGamesTimeline(visibleGames) {
       if (!years.length || years.at(-1).year !== year) years.push({ year, i });
     });
     host.innerHTML = `
-      <div class="timeline-head"><p class="eyebrow">Forecast vs. result</p><p class="section-copy">Each stem is a game: up means Elo favoured Good, down means it favoured Evil. Colour is who actually won; ringed games were upsets.</p></div>
+      <div class="timeline-head"><p class="eyebrow">Forecast vs. result</p><p class="section-copy">Up: Elo favoured Good. Colour: winner. Ring: upset.</p></div>
       <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="timeline-svg" role="img" aria-label="Elo forecast and result for every game">
         <text class="axis-label" x="${m.left - 8}" y="${y(1) + 4}" text-anchor="end">Good</text>
         <text class="axis-label" x="${m.left - 8}" y="${mid + 4}" text-anchor="end">50%</text>
@@ -1113,17 +1106,7 @@ function renderOracle() {
         <ul>${team(evil, "Evil", preview.ifEvil.evilChange)}</ul>
       </div>
     </div>
-    <p class="oracle-note">${oracleVerdict(pGood, good, evil)}</p>`;
-}
-
-function oracleVerdict(pGood, good, evil) {
-  const favourite = pGood >= 0.5 ? "Good" : "Evil";
-  const chance = Math.max(pGood, 1 - pGood);
-  const mood = chance > 0.9 ? "The Oracle sees no doubt." : chance > 0.7 ? "A clear favourite, but the night is long." : chance > 0.55 ? "A lean, not a lock." : "A coin flip with extra steps.";
-  const godOnEvil = evil.some(name => nameKey(name) === nameKey(LEGENDS.night));
-  const godOnGood = good.some(name => nameKey(name) === nameKey(LEGENDS.night));
-  const divine = godOnEvil || godOnGood ? ` (Elo does not account for divine intervention by ${escapeHtml(LEGENDS.night)}.)` : "";
-  return `${favourite} is favoured at ${fmtPct(chance)}. ${mood}${divine}`;
+`;
 }
 
 function gaugeSvg(pGood) {
@@ -1181,7 +1164,7 @@ function renderLookup() {
       + `<div class="chip-cloud">${[...playedBy.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([who, count]) => `<span class="chip chip-small" role="button" tabindex="0" data-player="${escapeHtml(who)}">${sigilSvg(who, 20)}<span class="chip-text"><strong>${escapeHtml(who)}</strong></span><span class="chip-value">${count}</span></span>`).join("")}</div>`;
     return;
   }
-  els.statisticsResults.innerHTML = `<p class="section-copy">Choose a player or a character to reveal their record.</p>`;
+  els.statisticsResults.innerHTML = `<p class="section-copy">Choose a player or character.</p>`;
 }
 
 function lookupCard(title, games, wins, losses, winrate, goodRate, evilRate) {
@@ -1205,7 +1188,7 @@ function renderScriptBreakdown() {
       <div class="script-name"><strong>${escapeHtml(entry.name)}</strong><small>${entry.games} game${entry.games === 1 ? "" : "s"} · ${entry.upsets} upset${entry.upsets === 1 ? "" : "s"}</small></div>
       <div class="split-bar" title="Good won ${entry.good} of ${entry.games}"><i class="fg" style="--w:${(goodRate * 100).toFixed(1)}%"><span>${entry.good}</span></i><i class="fe"><span>${entry.games - entry.good}</span></i><b class="expect" style="--x:${((entry.expected / entry.games) * 100).toFixed(1)}%" title="Elo expected Good ${fmtPct(entry.expected / entry.games)}"></b></div>
     </div>`;
-  }).join("") + `<p class="footnote"><span class="good-text">Good wins</span> / <span class="evil-text">Evil wins</span>. The tick marks what Elo expected for Good on average.</p>`;
+  }).join("") + `<p class="footnote"><span class="good-text">Good</span> / <span class="evil-text">Evil</span> wins. Tick: average Elo forecast for Good.</p>`;
 }
 
 function renderRoleBreakdown() {
@@ -1254,8 +1237,6 @@ function renderAbout() {
       <div><dt>Scripts</dt><dd>${escapeHtml([...new Set(games.map(game => game.script).filter(Boolean))].join(", "))}</dd></div>
       <div><dt>Most frequent storytellers</dt><dd>${topSt.map(([name, count]) => `${escapeHtml(name)} (${count})`).join(", ")}</dd></div>
     </dl>`;
-  const r = state.model.record;
-  els.suggestedStretch.textContent = r.suggestedStretch ? `To put the current #1 exactly on ${RATING_SETTINGS.chessTarget}, the stretch would be ${r.suggestedStretch.toFixed(3)}.` : "";
   els.titleTable.innerHTML = `<table class="data-table compact"><thead><tr><th class="num">Chess Elo</th><th>Title</th><th class="num">Base Elo needed</th><th>Players</th></tr></thead><tbody>${CHESS_TITLES.map(([cutoff, title], index) => {
     const next = CHESS_TITLES[index + 1]?.[0] ?? Infinity;
     const holders = state.model.leaderboard.filter(p => p.chess >= cutoff && p.chess < next).map(p => p.name);
@@ -1282,7 +1263,7 @@ function openPlayerDialog(name, options = {}) {
   els.playerDialogHeading.innerHTML = `
     ${sigilSvg(display, 64)}
     <div>
-      <p class="eyebrow">${legendClass(display) === "is-night" ? "Deity in residence · mortal title: " : ""}${p?.rated ? `${escapeHtml(TITLE_NAMES[p.title] || p.title)}${p.rank ? ` · #${p.rank} Elo` : ""}${p.auraRank ? ` · #${p.auraRank} Aura` : ""}` : "Traveller"}</p>
+      <p class="eyebrow">${p?.rated ? `${escapeHtml(TITLE_NAMES[p.title] || p.title)}${p.rank ? ` · #${p.rank} Elo` : ""}${p.auraRank ? ` · #${p.auraRank} Aura` : ""}` : "Traveller"}</p>
       <h2 id="playerDialogName">${escapeHtml(display)}</h2>
     </div>`;
   els.playerDialogContent.innerHTML = renderProfile(p, s);
@@ -1327,7 +1308,7 @@ function renderProfile(p, s) {
   const extra = s ? s.history.filter(entry => entry.isTraveler).map(entry => entry.game) : [];
 
   return `
-    ${rated ? `<section class="profile-tiles">${tiles}</section>${nextLine}` : `<p class="section-copy">${escapeHtml(s.player)} has only travelled so far, so they have no rating yet.</p>`}
+    ${rated ? `<section class="profile-tiles">${tiles}</section>${nextLine}` : `<p class="section-copy">Travelled only, so unrated.</p>`}
     ${rated ? `<section class="profile-section"><h3>Rating history</h3><div class="profile-chart chart-host"></div></section>` : ""}
     <section class="profile-columns">
       <div class="profile-section">
@@ -1388,14 +1369,14 @@ function renderGameDialogContent(game, row) {
   const winnerChance = row ? (row.winSide === 1 ? row.pNumber : 1 - row.pNumber) : null;
   return `
     <section class="profile-tiles">
-      ${profileTile("Winner", `<span class="${game.outcome === "Good" ? "good-text" : "evil-text"}">${escapeHtml(game.outcome)}</span>`, row?.upset ? "an upset" : winnerChance !== null ? "as expected" : "")}
-      ${profileTile("Players", String(game.playerCount || countParticipants(game)), row ? `${row.goodCount} Good · ${row.evilCount} Evil rated` : "")}
+      ${profileTile("Winner", `<span class="${game.outcome === "Good" ? "good-text" : "evil-text"}">${escapeHtml(game.outcome)}</span>`, row?.upset ? "upset" : winnerChance !== null ? "favoured" : "")}
+      ${profileTile("Players", String(game.playerCount || countParticipants(game)), row ? `${row.goodCount} Good · ${row.evilCount} Evil` : "")}
       ${profileTile("Final day", game.finalDay === "1" ? "Yes" : game.finalDay === "0" ? "No" : "—", "")}
       ${profileTile("Format", escapeHtml(game.format || "—"), "")}
       ${profileTile("Storyteller", escapeHtml(game.storyteller || "—"), "")}
-      ${row ? profileTile("Swing cap", row.cap < 1 ? `×${row.cap.toFixed(2)}` : "none", row.cap < 1 ? `raw swing exceeded ${RATING_SETTINGS.k}` : "under the cap") : ""}
+      ${row ? profileTile("Swing cap", row.cap < 1 ? `×${row.cap.toFixed(2)}` : "none", "") : ""}
     </section>
-    ${row ? `<section class="profile-section"><h3>Elo forecast</h3>${forecastBar(row)}<p class="section-copy">Good averaged ${fmtInt(row.goodAvg)} and Evil ${fmtInt(row.evilAvg)} going in. Elo gave the winners ${fmtPct(winnerChance)}.</p></section>` : ""}
+    ${row ? `<section class="profile-section"><h3>Elo forecast</h3>${forecastBar(row)}<p class="section-copy">Average Elo going in: Good ${fmtInt(row.goodAvg)}, Evil ${fmtInt(row.evilAvg)}.</p></section>` : ""}
     <section class="team-columns">
       <div class="team team-good ${game.outcome === "Good" ? "is-winner" : ""}"><h3><span class="tag tag-good">Good</span>${game.outcome === "Good" ? " Winners" : ""}</h3><ul class="seat-list">${goodTeam.map(seatRow).join("") || `<li class="muted">Nobody recorded.</li>`}</ul></div>
       <div class="team team-evil ${game.outcome === "Evil" ? "is-winner" : ""}"><h3><span class="tag tag-evil">Evil</span>${game.outcome === "Evil" ? " Winners" : ""}</h3><ul class="seat-list">${evilTeam.map(seatRow).join("") || `<li class="muted">Nobody recorded.</li>`}</ul></div>
@@ -1957,12 +1938,12 @@ function renderEntryPreview() {
   const good = outcome === "Good" ? winners : losers;
   const evil = outcome === "Good" ? losers : winners;
   if (!good.length || !evil.length) {
-    els.entryPreview.innerHTML = `<p class="section-copy">Add players to both teams to preview the Elo swing.</p>`;
+    els.entryPreview.innerHTML = `<p class="section-copy">Add players to both teams to preview Elo.</p>`;
     return;
   }
   const preview = previewMatchup(state.model, good, evil);
   const result = outcome === "Good" ? preview.ifGood : preview.ifEvil;
-  els.entryPreview.innerHTML = `<p class="eyebrow">Elo preview</p><p class="section-copy">Elo would have given Good <strong class="good-text">${fmtPct(preview.pGood)}</strong>. With ${outcome} winning, each Good player moves <strong class="${result.goodChange >= 0 ? "up" : "down"}">${fmtSigned(result.goodChange)}</strong> and each Evil player <strong class="${result.evilChange >= 0 ? "up" : "down"}">${fmtSigned(result.evilChange)}</strong>${result.cap < 1 ? ` (capped ×${result.cap.toFixed(2)})` : ""}.</p>`;
+  els.entryPreview.innerHTML = `<p class="eyebrow">Elo preview</p><p class="section-copy">Forecast: Good <strong class="good-text">${fmtPct(preview.pGood)}</strong>. Change each: Good <strong class="${result.goodChange >= 0 ? "up" : "down"}">${fmtSigned(result.goodChange)}</strong>, Evil <strong class="${result.evilChange >= 0 ? "up" : "down"}">${fmtSigned(result.evilChange)}</strong>${result.cap < 1 ? ` (capped ×${result.cap.toFixed(2)})` : ""}.</p>`;
 }
 
 async function saveEntry() {
