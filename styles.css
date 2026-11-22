@@ -67,7 +67,7 @@ body {
 @keyframes twinkle { 0%, 100% { opacity: 0.12; } 50% { opacity: 0.7; } }
 
 h1, h2, h3, h4, p { margin: 0; }
-.legend-number, .score-line, .stat-tile strong, .board-rank, .chip-value, .profile-tile strong, .player-card-elo strong, .mini-grid strong, .tier-label, .method-steps li::before { font-variant-numeric: lining-nums tabular-nums; }
+.legend-number, .stat-tile strong, .board-rank, .chip-value, .profile-tile strong, .player-card-elo strong, .mini-grid strong, .tier-label, .method-steps li::before { font-variant-numeric: lining-nums tabular-nums; }
 h2 { font-family: var(--font-display); font-weight: 600; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; letter-spacing: -0.01em; }
 h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.55rem; line-height: 1.15; }
 h4 { font-family: var(--font-ui); font-size: 0.95rem; font-weight: 700; }
@@ -334,27 +334,27 @@ main { width: min(1240px, 100%); margin: 0 auto; padding: 28px clamp(16px, 4vw, 
 .legend-infinity { font-size: clamp(4.6rem, 9vw, 6.6rem); animation: breathe 4.5s ease-in-out infinite; }
 @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
 .legend-figure small { color: var(--muted); font-size: 0.82rem; line-height: 1.35; padding-bottom: 8px; }
-.legend-facts { list-style: none; padding: 0; margin: 8px 0 14px; display: grid; gap: 10px; }
-.legend-facts li { padding-left: 18px; position: relative; color: var(--text); }
-.legend-facts li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 7px; height: 7px; transform: rotate(45deg); background: var(--gold); }
-.legend-night .legend-facts li::before { background: var(--moon); border-radius: 50%; transform: none; }
-.legend-facts strong { font-weight: 700; }
-.legend-facts span { display: block; color: var(--muted); font-size: 0.86rem; }
-.legend-spark { height: 48px; margin: 4px 0 18px; }
 .legend .button { align-self: flex-start; margin-top: auto; }
 
 /* ------------------------------------------------------------ rivalry */
 
-.rivalry-grid { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: clamp(18px, 3vw, 44px); align-items: center; }
-.rivalry-label { font-family: var(--font-label); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-.score-line { display: flex; align-items: baseline; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: clamp(3rem, 6vw, 4.4rem); line-height: 1; }
-.score-day { color: var(--gold); }
-.score-night { color: var(--moon); }
-.score-both { color: var(--text); }
-.score-none { color: var(--faint); }
-.score-sep { color: var(--faint); font-weight: 500; }
-.score-names { display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
-.medal-track { display: flex; flex-wrap: wrap; gap: 10px; }
+.tape { width: 100%; max-width: 720px; margin: 0 auto; border-collapse: collapse; }
+.tape th, .tape td { padding: 9px 14px; border-bottom: 1px solid rgba(239, 230, 210, 0.06); }
+.tape thead th { padding-bottom: 14px; border-bottom: 1px solid var(--line-strong); font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; }
+.tape-name { display: inline-flex; align-items: center; gap: 10px; }
+.tape .tape-day { width: 40%; text-align: right; }
+.tape .tape-night { width: 40%; text-align: left; }
+.tape thead .tape-day { color: var(--gold); }
+.tape thead .tape-night { color: var(--moon); }
+.tape tbody th { text-align: center; white-space: nowrap; color: var(--muted); font-size: 0.74rem; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; }
+.tape td { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+.tape td small { margin: 0 3px; color: var(--faint); font-size: 0.78rem; font-weight: 600; }
+.tape td.is-trail { color: var(--muted); font-weight: 500; }
+.tape td.tape-day.is-lead { color: var(--gold); font-weight: 750; }
+.tape td.tape-night.is-lead { color: var(--moon); font-weight: 750; }
+.tape .tape-section th { padding-top: 22px; color: var(--text); font-family: var(--font-label); font-size: 0.72rem; letter-spacing: 0.16em; border-bottom-color: var(--line-strong); }
+.tape .tape-shared td { text-align: center; color: var(--muted); font-size: 0.95rem; font-weight: 600; }
+.medal-track { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
 .medal {
   display: flex;
   flex-direction: column;
@@ -375,7 +375,7 @@ main { width: min(1240px, 100%); margin: 0 auto; padding: 28px clamp(16px, 4vw, 
 .medal-night { color: var(--moon); border-color: rgba(184, 166, 255, 0.32); background: var(--moon-soft); }
 .medal-both { color: var(--text); }
 .medal-none { color: var(--faint); }
-.medal-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; color: var(--muted); font-size: 0.8rem; }
+.medal-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 18px; color: var(--muted); font-size: 0.8rem; }
 .medal-legend span { display: inline-flex; align-items: center; gap: 7px; }
 .medal-key { width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--line-strong); }
 .medal-key.medal-day { background: var(--gold); }
@@ -834,8 +834,6 @@ main { width: min(1240px, 100%); margin: 0 auto; padding: 28px clamp(16px, 4vw, 
   .boards, .stats-grid, .about-grid, .oracle-layout { grid-template-columns: minmax(0, 1fr); }
   .oracle-result { position: static; }
   .pulse-grid { grid-template-columns: minmax(0, 1fr); }
-  .rivalry-grid { grid-template-columns: auto auto; }
-  .medal-track { grid-column: 1 / -1; }
 }
 
 @media (max-width: 920px) {
@@ -876,7 +874,6 @@ main { width: min(1240px, 100%); margin: 0 auto; padding: 28px clamp(16px, 4vw, 
   .board-row { grid-template-columns: 22px 30px minmax(0, 1fr) 64px 40px; gap: 8px; padding: 8px 6px; }
   .aura-row { grid-template-columns: 22px 30px minmax(0, 1fr) 76px; }
   .board-bar { display: none; }
-  .rivalry-grid { grid-template-columns: 1fr 1fr; }
   .role-breakdown { grid-template-columns: minmax(0, 1fr); }
   .stat-list { grid-template-columns: minmax(0, 1fr); }
   .oracle-split { grid-template-columns: minmax(0, 1fr); }
@@ -893,4 +890,11 @@ main { width: min(1240px, 100%); margin: 0 auto; padding: 28px clamp(16px, 4vw, 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   html { scroll-behavior: auto; }
+}
+
+@media (max-width: 640px) {
+  .tape th, .tape td { padding: 8px 6px; }
+  .tape thead th { font-size: 1.25rem; }
+  .tape td { font-size: 0.95rem; }
+  .tape tbody th { font-size: 0.66rem; letter-spacing: 0.04em; white-space: normal; }
 }

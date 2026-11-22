@@ -551,10 +551,8 @@ function renderHome() {
   const nightLine = document.querySelector(".hero-line-night");
   if (nightLine) nightLine.textContent = `${LEGENDS.night} is god.`;
 
-  els.legendRohan.innerHTML = day ? legendDay(day) : "";
-  els.legendNatalie.innerHTML = night ? legendNight(night) : "";
-  renderSparkline(els.legendRohan.querySelector(".legend-spark"), day, "var(--gold)");
-  renderSparkline(els.legendNatalie.querySelector(".legend-spark"), night, "var(--moon)");
+  els.legendRohan.innerHTML = day ? legendCard(day, false) : "";
+  els.legendNatalie.innerHTML = night ? legendCard(night, true) : "";
   renderRivalry(day, night);
 
   const options = model.players.filter(item => item.rated).sort((a, b) => a.name.localeCompare(b.name))
@@ -579,81 +577,53 @@ function renderHome() {
   els.latestGame.innerHTML = last ? latestGameCard(last) : `<p class="empty-state">No games yet.</p>`;
 }
 
-function legendDay(p) {
-  const s = stat(p.name);
-  const nextAura = state.model.aura.find(entry => entry.name !== p.name);
-  const auraLead = p.auraRank === 1 && nextAura?.aura ? `${(p.aura / nextAura.aura).toFixed(1)}× second place` : p.auraRank ? `#${p.auraRank}` : "";
-  const facts = [
-    `<li><strong>${fmtInt(p.aura)}</strong> Aura${auraLead ? ` <span>${auraLead}</span>` : ""}</li>`,
-    `<li><strong>${p.wins}–${p.losses}</strong> record <span>${p.evilWins}–${p.evilLosses} as Evil, ${p.goodWins}–${p.goodLosses} as Good</span></li>`,
-    p.underdogGames ? `<li><strong>${p.upsetWins} of ${p.underdogGames}</strong> underdog games won</li>` : "",
-    `<li>Peak <strong>${fmtInt(p.chessPeak)}</strong></li>`,
-    s?.storyteller ? `<li>Storyteller <strong>${s.storyteller}×</strong></li>` : "",
-  ].join("");
-  const ranks = [p.rank ? `#${p.rank} Elo` : "", p.auraRank ? `#${p.auraRank} Aura` : ""].filter(Boolean).join(" · ");
+function legendCard(p, isNight) {
+  const title = isNight ? "god" : TITLE_NAMES[p.title] || p.title;
+  const figure = isNight
+    ? `<span class="legend-number legend-infinity">∞</span><small>Divine rating</small>`
+    : `<span class="legend-number" data-count="${Math.round(p.chess)}">${fmtInt(p.chess)}</span><small>Chess Elo</small>`;
   return `
     <div class="legend-emblem">${sigilSvg(p.name, 92)}</div>
-    ${ranks ? `<p class="eyebrow">${ranks}</p>` : ""}
     <h2 class="legend-name">${escapeHtml(p.name)}</h2>
-    <p class="legend-title">${escapeHtml(TITLE_NAMES[p.title] || p.title)}</p>
-    <div class="legend-figure"><span class="legend-number" data-count="${Math.round(p.chess)}">${fmtInt(p.chess)}</span><small>Chess Elo<br>Base ${fmtInt(p.elo)}</small></div>
-    <ul class="legend-facts">${facts}</ul>
-    <div class="legend-spark"></div>
-    <a class="button button-gold" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Profile</a>`;
+    <p class="legend-title">${escapeHtml(title)}</p>
+    <div class="legend-figure">${figure}</div>
+    <a class="button ${isNight ? "button-moon" : "button-gold"}" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Profile</a>`;
 }
 
-function legendNight(p) {
-  const s = stat(p.name);
-  const gamesRank = 1 + state.model.players.filter(other => other.games > p.games).length;
-  const tied = state.model.players.filter(other => other.games === p.games).length > 1;
-  const capped = t => t.won && t.change >= RATING_SETTINGS.k - 0.001;
-  const capWins = p.timeline.filter(capped).length;
-  const capEvil = p.timeline.filter(t => capped(t) && t.side === "Evil").length;
-  const biggest = p.timeline.reduce((best, t) => (t.change > (best?.change ?? -Infinity) ? t : best), null);
-  const h2h = headToHead(state.model, LEGENDS.night, LEGENDS.day);
-  const beatDay = h2h?.games.filter(g => g.kind === "opposed" && g.winner === p.name) || [];
-  const lastBeat = beatDay.at(-1);
-  const lastBeatRole = lastBeat ? lastBeat.row.game.roles[Object.keys(lastBeat.row.game.roles).find(key => nameKey(key) === nameKey(p.name))] : "";
-  const facts = [
-    `<li><strong>${p.games}</strong> games <span>${tied ? "tied " : ""}${ordinal(gamesRank)} most</span></li>`,
-    s?.demonGames ? `<li><strong>${s.demonGames}×</strong> the Demon <span>${demonList(s)}</span></li>` : "",
-    capWins ? `<li>${capFact(capWins, capEvil, p)}</li>` : biggest ? `<li>Best night: <strong>${fmtSigned(biggest.change)}</strong> <span>${shortDate(biggest.game.date)}</span></li>` : "",
-    lastBeat ? `<li>Beat ${escapeHtml(LEGENDS.day)}${beatDay.length > 1 ? ` <strong>${beatDay.length}×</strong>` : ""}${lastBeatRole ? ` as the <strong>${escapeHtml(lastBeatRole)}</strong>` : ""} <span>${beatDay.length > 1 ? "last on " : ""}${shortDate(lastBeat.row.game.date)}</span></li>` : "",
-    s?.storyteller ? `<li>Storyteller <strong>${s.storyteller}×</strong></li>` : "",
-  ].join("");
-  return `
-    <div class="legend-emblem">${sigilSvg(p.name, 92)}</div>
-    ${p.rank ? `<p class="eyebrow">#${p.rank} Elo</p>` : ""}
-    <h2 class="legend-name">${escapeHtml(p.name)}</h2>
-    <p class="legend-title">god</p>
-    <div class="legend-figure"><span class="legend-number legend-infinity">∞</span><small>Divine rating<br>Chess Elo ${fmtInt(p.chess)}</small></div>
-    <ul class="legend-facts">${facts}</ul>
-    <div class="legend-spark"></div>
-    <a class="button button-moon" href="#player/${encodeURIComponent(p.name)}" data-player="${escapeHtml(p.name)}">Profile</a>`;
-}
-
-function capFact(capWins, capEvil, p) {
-  const cap = `hit the +${RATING_SETTINGS.k} cap`;
-  if (capEvil && capEvil === capWins && capEvil === p.evilWins) {
-    if (capEvil === 1) return `<strong>The</strong> Evil win ${cap}`;
-    return `<strong>${capEvil === 2 ? "Both" : `All ${capEvil}`}</strong> Evil wins ${cap}`;
-  }
-  return `<strong>${capWins}</strong> ${capWins === 1 ? "win" : "wins"} ${cap}`;
-}
-
-function demonList(s) {
-  const demons = [...s.roles.entries()].filter(([role]) => DEMON_ROLES.has(role)).map(([role, count]) => (count > 1 ? `${role} ×${count}` : role));
-  return escapeHtml(demons.join(", "));
-}
-
+// Side-by-side comparison of the two legends: identical rows for both, better value highlighted.
 function renderRivalry(day, night) {
   if (!day || !night) {
     els.rivalry.innerHTML = "";
     return;
   }
+  const sd = stat(day.name);
+  const sn = stat(night.name);
   const h2h = headToHead(state.model, day.name, night.name);
+  const together = h2h.together;
   const expectedTogether = h2h.games.filter(g => g.kind === "together")
     .reduce((sum, g) => sum + (g.row.sides[day.slot] === 1 ? g.row.pNumber : 1 - g.row.pNumber), 0);
+  const rank = n => (n ? ` <small>#${n}</small>` : "");
+  const wl = (w, l) => `${w}–${l}`;
+  // [label, day value, night value, day score, night score]; scores mark the better value, null = not compared.
+  const rows = [
+    ["Chess Elo", fmtInt(day.chess) + rank(day.rank), fmtInt(night.chess) + rank(night.rank), day.chess, night.chess],
+    ["Base Elo", fmtInt(day.elo), fmtInt(night.elo), day.elo, night.elo],
+    ["Peak chess Elo", fmtInt(day.chessPeak), fmtInt(night.chessPeak), day.chessPeak, night.chessPeak],
+    ["Aura", fmtInt(day.aura) + rank(day.auraRank), fmtInt(night.aura) + rank(night.auraRank), day.aura, night.aura],
+    ["Games", day.games, night.games, null, null],
+    ["Record", `${wl(day.wins, day.losses)} <small>${fmtPct(day.winRate)}</small>`, `${wl(night.wins, night.losses)} <small>${fmtPct(night.winRate)}</small>`, day.winRate, night.winRate],
+    ["As Good", wl(day.goodWins, day.goodLosses), wl(night.goodWins, night.goodLosses), ratio(day.goodWins, day.goodGames), ratio(night.goodWins, night.goodGames)],
+    ["As Evil", wl(day.evilWins, day.evilLosses), wl(night.evilWins, night.evilLosses), ratio(day.evilWins, day.evilGames), ratio(night.evilWins, night.evilGames)],
+    ["Wins as underdog", `${day.upsetWins} of ${day.underdogGames}`, `${night.upsetWins} of ${night.underdogGames}`, day.upsetRate, night.upsetRate],
+    ["Demon games", sd?.demonGames ?? 0, sn?.demonGames ?? 0, null, null],
+    ["Times storyteller", sd?.storyteller ?? 0, sn?.storyteller ?? 0, null, null],
+  ];
+  const cell = (value, mine, theirs, side) => {
+    const compared = mine !== null && mine !== undefined && theirs !== null && theirs !== undefined && mine !== theirs;
+    const cls = compared ? (mine > theirs ? "is-lead" : "is-trail") : "";
+    return `<td class="tape-${side} ${cls}">${value}</td>`;
+  };
+  const body = rows.map(([label, dv, nv, ds, ns]) => `<tr>${cell(dv, ds, ns, "day")}<th scope="row">${label}</th>${cell(nv, ns, ds, "night")}</tr>`).join("");
   const medallions = h2h.games.map(g => {
     const game = g.row.game;
     let cls;
@@ -673,40 +643,35 @@ function renderRivalry(day, night) {
       <span class="visually-hidden">${escapeHtml(label)}, ${escapeHtml(longDate(game.date))}</span>
     </button>`;
   }).join("");
-  const together = h2h.together;
   els.rivalry.innerHTML = `
     <div class="section-head">
       <div>
-        <h2 id="rivalryTitle">Head to head</h2>
+        <h2 id="rivalryTitle">${escapeHtml(day.name)} vs. ${escapeHtml(night.name)}</h2>
       </div>
     </div>
-    <div class="rivalry-grid">
-      <div class="rivalry-score">
-        <p class="rivalry-label">Opposite teams</p>
-        <div class="score-line">
-          <span class="score score-day" data-count="${h2h.aWins}">${h2h.aWins}</span>
-          <span class="score-sep">–</span>
-          <span class="score score-night" data-count="${h2h.bWins}">${h2h.bWins}</span>
-        </div>
-        <div class="score-names"><span>${escapeHtml(day.name)}</span><span>${escapeHtml(night.name)}</span></div>
-      </div>
-      <div class="rivalry-score">
-        <p class="rivalry-label">Same team${together ? ` · Elo expected ${fmtPct(expectedTogether / together)}` : ""}</p>
-        <div class="score-line">
-          <span class="score score-both" data-count="${h2h.togetherWins}">${h2h.togetherWins}</span>
-          <span class="score-sep">–</span>
-          <span class="score score-none" data-count="${together - h2h.togetherWins}">${together - h2h.togetherWins}</span>
-        </div>
-        <div class="score-names"><span>Won</span><span>Lost</span></div>
-      </div>
-      <div class="medal-track" aria-label="Shared games, oldest first">${medallions || `<p class="section-copy">No shared games yet.</p>`}</div>
-    </div>
+    <table class="tape">
+      <thead>
+        <tr>
+          <th scope="col" class="tape-day"><span class="tape-name">${escapeHtml(day.name)}${sigilSvg(day.name, 32)}</span></th>
+          <th scope="col"><span class="visually-hidden">Stat</span></th>
+          <th scope="col" class="tape-night"><span class="tape-name">${sigilSvg(night.name, 32)}${escapeHtml(night.name)}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${body}
+        <tr class="tape-section"><th colspan="3" scope="colgroup">Against each other</th></tr>
+        <tr>${cell(h2h.aWins, h2h.aWins, h2h.bWins, "day")}<th scope="row">Wins, opposite teams</th>${cell(h2h.bWins, h2h.bWins, h2h.aWins, "night")}</tr>
+        <tr class="tape-shared"><td colspan="3">Same team: ${wl(h2h.togetherWins, together - h2h.togetherWins)}${together ? ` <small>Elo expected ${fmtPct(expectedTogether / together)}</small>` : ""}</td></tr>
+      </tbody>
+    </table>
+    <div class="medal-track" aria-label="Shared games, oldest first">${medallions || `<p class="section-copy">No shared games yet.</p>`}</div>
     <div class="medal-legend">
       <span><i class="medal-key medal-day"></i>${escapeHtml(day.name)} beat ${escapeHtml(night.name)}</span>
       <span><i class="medal-key medal-night"></i>${escapeHtml(night.name)} beat ${escapeHtml(day.name)}</span>
       <span><i class="medal-key medal-both"></i>Won together</span>
       <span><i class="medal-key medal-none"></i>Lost together</span>
     </div>`;
+  bindTips(els.rivalry);
 }
 
 function medalIcon(cls) {
@@ -2261,12 +2226,6 @@ function fmtSigned(value) {
 
 function plural(n, word) {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
-}
-
-function ordinal(n) {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 }
 
 function numberWords(n) {
