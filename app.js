@@ -10,10 +10,11 @@ import {
   nextTitle,
   previewMatchup,
 } from "./ratings.js?v=20261122";
+import * as db from "./supabase.js?v=20261126";
 
 const RECORD_CSV = "Blood on the Clocktower - Games Sheet.csv";
 const GAMES_SHEET_JSON = "games-sheet.json";
-const DEFAULT_ENTRY_PASSCODE = "psip";
+const SITE_DATA_JSON = "site-data.json";
 
 // The home page is themed around these two. Change the names here to re-theme it.
 const LEGENDS = { day: "Rohan", night: "Natalie" };
@@ -62,7 +63,21 @@ const SEEDED_TRAVELER_ALIGNMENT = {
   "10/31/26|Andreas|Judge": "Good",
 };
 
-const VIEWS = ["home", "rankings", "tiers", "players", "games", "stats", "about"];
+const VIEWS = ["home", "rankings", "tiers", "players", "awards", "games", "stats", "events", "gallery", "about"];
+
+const AWARDS = [
+  { key: "mangoNectar", name: "Mango Nectar", short: "Nectar", blurb: "MVP", cls: "nectar" },
+  { key: "mushroomElixir", name: "Mushroom Elixir", short: "Elixir", blurb: "Most responsible for their team losing", cls: "elixir" },
+];
+
+// Storyteller grades from the Player Rankings sheet. Letters sort S > A > … > F; + and − refine within a letter.
+const GRADE_FIELDS = [
+  { key: "overallSkill", label: "Overall" },
+  { key: "goodSkill", label: "Good" },
+  { key: "evilSkill", label: "Evil" },
+  { key: "gameImpact", label: "Game impact" },
+];
+const GRADE_OPTIONS = ["S+", "S", "S-", "A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"];
 const MINUS = "−";
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -74,7 +89,17 @@ const state = {
   draftPlayers: new Set(),
   draftRoles: new Set(),
   databaseAvailable: false,
-  activePasscode: "",
+  editor: null,
+  afterSignIn: null,
+  profiles: new Map(),
+  events: [],
+  photos: [],
+  awards: new Map(),
+  tierCategory: "overallSkill",
+  editingProfile: "",
+  editingEventId: "",
+  photoIndex: -1,
+  uploads: [],
   pendingDeleteGameId: "",
   pendingEditGameId: "",
   editingGameId: "",
@@ -100,12 +125,14 @@ async function init() {
   startClock();
 
   try {
-    const databaseState = await loadDatabaseState();
-    const source = databaseState || await loadStaticGamesSheet();
-    state.databaseAvailable = Boolean(databaseState);
-    state.headers = source.headers;
-    state.roster = state.headers.slice(BASE_COLUMNS.length).filter(Boolean);
-    state.games = source.games;
+    const source = await loadSupabaseState() || await loadStaticState();
+    state.databaseAvailable = source.backend === "supabase";
+    state.roster = source.roster;
+    state.games = source.games.map(withAwards);
+    setProfiles(source.players);
+    state.events = source.events;
+    state.photos = source.photos;
+    if (state.databaseAvailable && db.currentUser() && await db.isEditor()) state.editor = db.currentUser();
     seedOracle();
     rebuild();
     applyRuntimeMode();
@@ -118,15 +145,54 @@ async function init() {
 
 /* ---------------------------------------------------------------- loading */
 
-async function loadDatabaseState() {
+// Supabase is the live database. Without it (not configured, unreachable, or
+// not seeded yet) the site runs read-only from the committed snapshots.
+async function loadSupabaseState() {
+  if (!db.supabaseEnabled) return null;
   try {
-    const response = await fetch("/api/state", { cache: "no-store" });
-    if (!response.ok) return null;
-    const payload = await response.json();
-    return Array.isArray(payload.games) ? payload : null;
-  } catch {
+    const data = await db.loadSiteState();
+    if (!data.games.length) {
+      console.warn("Supabase has no games yet, so the site is showing the static snapshot. Run supabase/seed.sql.");
+      return null;
+    }
+    let roster = data.players.map(item => item.name);
+    if (!roster.length) roster = (await loadStaticGamesSheet()).headers.slice(BASE_COLUMNS.length).filter(Boolean);
+    return { backend: "supabase", roster, ...data };
+  } catch (error) {
+    console.warn("Supabase is unavailable, so the site is showing the static snapshot.", error);
     return null;
   }
+}
+
+async function loadStaticState() {
+  const [sheet, siteData] = await Promise.all([loadStaticGamesSheet(), loadSiteData()]);
+  const awards = siteData.gameAwards || {};
+  const roster = sheet.headers.slice(BASE_COLUMNS.length).filter(Boolean);
+  return {
+    backend: "static",
+    roster,
+    games: sheet.games.map(game => ({ ...awards[game.id], ...game })),
+    players: siteData.players || [],
+    events: siteData.events || [],
+    photos: siteData.photos || [],
+  };
+}
+
+async function loadSiteData() {
+  try {
+    const response = await fetch(SITE_DATA_JSON, { cache: "no-store" });
+    return response.ok ? await response.json() : {};
+  } catch {
+    return {};
+  }
+}
+
+function withAwards(game) {
+  return { ...game, mangoNectar: game.mangoNectar || [], mushroomElixir: game.mushroomElixir || [] };
+}
+
+function setProfiles(list) {
+  state.profiles = new Map(list.map(item => [nameKey(item.name), item]));
 }
 
 async function loadStaticGamesSheet() {
@@ -176,30 +242,20 @@ function csvGamesSheetState(text) {
 
 function applyRuntimeMode() {
   document.body.classList.toggle("is-readonly", !state.databaseAvailable);
+  document.body.classList.toggle("is-editor", Boolean(state.editor));
   els.eggButton.hidden = !state.databaseAvailable;
+  els.eggButton.title = state.editor ? "Enter a game" : "Storyteller sign-in";
+  els.eggButton.setAttribute("aria-label", els.eggButton.title);
+  els.editorBar.hidden = !state.editor;
+  els.editorEmail.textContent = state.editor?.email || "";
+  document.querySelector('[data-nav="gallery"]').hidden = !state.photos.length && !state.editor;
+  document.querySelector('[data-nav="events"]').hidden = !upcomingEvents().length && !state.editor;
 }
 
 /* ---------------------------------------------------------------- elements & events */
 
 function cacheElements() {
-  const ids = [
-    "main", "skyLayer", "navToggle", "siteNav", "legendRohan", "legendNatalie", "rivalry", "rivalryTitle", "compareA",
-    "compareB", "duelChart", "statStrip", "latestGame", "recordStrip", "eloBoard", "auraBoard", "titleLadder",
-    "leaderTable", "rookieTiers", "upsetTiers", "duoTiers", "playerSearch", "playerSort", "rosterGrid",
-    "scriptFilter", "formatFilter", "outcomeFilter", "downloadRecord", "gamesTimeline", "gameTableBody", "issuesPanel",
-    "oraclePool", "oracleResult", "oracleRandom", "oracleClear", "statsPlayer", "statsRole", "statisticsResults",
-    "scriptBreakdown", "roleBreakdown", "aboutCopy", "aboutFacts", "titleTable", "cutoffTable",
-    "footerUpdated", "tooltip", "eggButton", "infoDialog", "infoDialogEyebrow", "infoDialogTitle", "infoDialogContent",
-    "infoDialogClose", "playerDialog", "playerDialogHeading", "playerDialogContent", "playerDialogClose", "gameDialog",
-    "gameDialogEyebrow", "gameDialogName", "gameDialogContent", "gameDialogClose", "deleteDialog", "deleteForm",
-    "deleteGameName", "deleteGameSummary", "deletePasscodeInput", "deleteConfirm", "deleteMessage", "passcodeDialog",
-    "passcodeForm", "passcodeInput", "passcodeSubmit", "passcodeMessage", "entryDialog", "entryForm", "entryEyebrow",
-    "entryTitle", "entryDate", "entryOutcome", "entryFinalDay", "entryStoryteller", "entryFormat", "entryScript",
-    "participantRows", "participantTemplate", "newPlayerName", "addNewPlayer", "newRoleName", "addNewRole",
-    "addParticipant", "saveEntry", "resetLocalGames", "entryMessage", "entryPreview", "playerOptions", "roleOptions",
-    "scriptOptions", "clockTicks", "clockHour", "clockMinute", "clockSecond",
-  ];
-  ids.forEach(id => { els[id] = document.getElementById(id); });
+  document.querySelectorAll("[id]").forEach(node => { els[node.id] = node; });
 }
 
 function bindEvents() {
@@ -215,8 +271,14 @@ function bindEvents() {
     }
   });
 
-  // Delegated actions: anything with data-player / data-game opens a dialog.
+  // Delegated actions: data-action runs an action; data-player / data-game / data-duo open a dialog.
   document.addEventListener("click", event => {
+    const actionTarget = event.target.closest("[data-action]");
+    if (actionTarget) {
+      event.preventDefault();
+      runAction(actionTarget.dataset.action, actionTarget);
+      return;
+    }
     const playerTarget = event.target.closest("[data-player]");
     if (playerTarget && !event.target.closest(".oracle-pool")) {
       event.preventDefault();
@@ -237,7 +299,7 @@ function bindEvents() {
   });
   document.addEventListener("keydown", event => {
     if (event.key !== "Enter" && event.key !== " ") return;
-    const target = event.target.closest("tr[data-player], tr[data-game], [role='button'][data-player], [role='button'][data-game], [role='button'][data-duo]");
+    const target = event.target.closest("tr[data-player], tr[data-game], [role='button'][data-player], [role='button'][data-game], [role='button'][data-duo], [role='button'][data-action]");
     if (!target) return;
     event.preventDefault();
     target.click();
@@ -279,21 +341,31 @@ function bindEvents() {
   els.infoDialogClose.addEventListener("click", () => els.infoDialog.close());
   els.playerDialogClose.addEventListener("click", () => els.playerDialog.close());
   els.gameDialogClose.addEventListener("click", () => els.gameDialog.close());
+  els.photoDialogClose.addEventListener("click", () => els.photoDialog.close());
   [els.playerDialog, els.gameDialog, els.infoDialog].forEach(dialog => {
     dialog.addEventListener("close", restoreHash);
     dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
   });
+  els.photoDialog.addEventListener("click", event => { if (event.target === els.photoDialog) els.photoDialog.close(); });
+  els.photoDialog.addEventListener("keydown", event => {
+    if (event.target.closest("input, textarea")) return;
+    if (event.key === "ArrowLeft") stepPhoto(-1);
+    if (event.key === "ArrowRight") stepPhoto(1);
+  });
 
   els.downloadRecord.addEventListener("click", downloadRecordCsv);
   els.deleteConfirm.addEventListener("click", deleteSelectedGame);
-  els.deletePasscodeInput.addEventListener("keydown", event => {
-    if (event.key === "Enter") { event.preventDefault(); deleteSelectedGame(); }
-  });
-  els.eggButton.addEventListener("click", () => requestEntryUnlock());
-  els.passcodeSubmit.addEventListener("click", submitPasscode);
-  els.passcodeInput.addEventListener("keydown", event => {
-    if (event.key === "Enter") { event.preventDefault(); submitPasscode(); }
-  });
+  els.eggButton.addEventListener("click", () => requireEditor(openEntryDialog));
+  els.signInForm.addEventListener("submit", event => { event.preventDefault(); submitSignIn(); });
+  els.signOutButton.addEventListener("click", signOutEditor);
+  els.profileForm.addEventListener("submit", event => { event.preventDefault(); saveProfile(); });
+  els.profilePhotoInput.addEventListener("change", previewProfilePhoto);
+  els.gradesForm.addEventListener("submit", event => { event.preventDefault(); saveGrades(); });
+  els.gradesAdd.addEventListener("change", addGradesRow);
+  els.eventForm.addEventListener("submit", event => { event.preventDefault(); saveEventEntry(); });
+  els.photoFileInput.addEventListener("change", () => { openUploadDialog([...els.photoFileInput.files]); els.photoFileInput.value = ""; });
+  els.uploadForm.addEventListener("submit", event => { event.preventDefault(); uploadPhotos(); });
+  els.photoEditForm.addEventListener("submit", event => { event.preventDefault(); savePhotoDetails(); });
   els.entryForm.addEventListener("keydown", preventEntryFormEnterSubmit);
   els.entryForm.addEventListener("input", renderEntryPreview);
   els.entryForm.addEventListener("change", renderEntryPreview);
@@ -374,9 +446,11 @@ function rebuild() {
   state.players = collectPlayers(allGames);
   state.stats = computeStats(allGames, state.players);
   state.issues = findIssues(allGames);
+  state.awards = computeAwards(allGames);
   if (!state.model.playerByName.has(nameKey(state.compare[0]))) state.compare[0] = state.model.leaderboard[0]?.name || "";
   if (!state.model.playerByName.has(nameKey(state.compare[1]))) state.compare[1] = state.model.leaderboard.at(-1)?.name || "";
   renderAll();
+  applyRuntimeMode();
 }
 
 function renderAll() {
@@ -385,9 +459,12 @@ function renderAll() {
   renderRankings();
   renderTiers();
   renderRoster();
+  renderAwards();
   renderGameFilters();
   renderGames();
   renderStatistics();
+  renderEvents();
+  renderGallery();
   renderAbout();
   document.querySelectorAll("[data-setting]").forEach(node => {
     const value = RATING_SETTINGS[node.dataset.setting];
@@ -420,6 +497,7 @@ function collectPlayers(games) {
     names.push(clean(name));
   };
   state.model.slots.forEach(add);
+  state.profiles.forEach(item => add(item.name));
   state.draftPlayers.forEach(add);
   games.forEach(game => {
     game.winNames.forEach(add);
@@ -839,6 +917,7 @@ function renderTitleLadder() {
 /* ---------------------------------------------------------------- tiers */
 
 function renderTiers() {
+  renderPlayerTiers();
   const m = state.model;
   els.rookieTiers.innerHTML = tierRows(m.rookies, p => tierChip(p, `${fmtInt(p.chess)}`, `${p.wins}–${p.losses} · debut ${shortDate(p.debutGame.date)}`, `${p.name}\nElo percentile ${fmtPct(p.percentile)}\nBase ${fmtInt(p.elo)}${p.provisional ? ` (95%: ${fmtInt(p.rangeLow)}–${fmtInt(p.rangeHigh)})` : ""}`));
   els.upsetTiers.innerHTML = tierRows(m.upsets, p => tierChip(p, fmtPct(p.upsetRate), `${p.upsetWins} of ${p.underdogGames} as underdog`, `${p.name}\n${p.upsetWins} upset wins in ${p.underdogGames} underdog games\nBase Elo ${fmtInt(p.elo)}`));
@@ -851,12 +930,57 @@ function renderTiers() {
   [els.rookieTiers, els.upsetTiers, els.duoTiers].forEach(bindTips);
 }
 
-function tierRows(items, chip) {
-  if (!items.length) return `<p class="empty-state">Not enough games yet.</p>`;
+function tierRows(items, chip, empty = "Not enough games yet.") {
+  if (!items.length) return `<p class="empty-state">${escapeHtml(empty)}</p>`;
   return ["S", "A", "B", "C", "D", "F"].map(tier => {
     const members = items.filter(item => item.tier === tier);
     return `<div class="tier-row tier-${tier.toLowerCase()} ${members.length ? "" : "is-empty"}"><span class="tier-label">${tier}</span><div class="tier-chips">${members.map(chip).join("") || `<span class="tier-none">—</span>`}</div></div>`;
   }).join("");
+}
+
+function renderPlayerTiers() {
+  const field = GRADE_FIELDS.find(item => item.key === state.tierCategory) || GRADE_FIELDS[0];
+  els.tierCategory.querySelectorAll("[data-category]").forEach(button => button.classList.toggle("is-active", button.dataset.category === field.key));
+  const profiles = [...state.profiles.values()];
+  const graded = profiles.filter(item => gradeTier(item[field.key]))
+    .map(item => ({ ...item, tier: gradeTier(item[field.key]) }))
+    .sort((a, b) => gradeRank(b[field.key]) - gradeRank(a[field.key]) || a.name.localeCompare(b.name));
+  els.playerTiers.innerHTML = tierRows(graded, item => {
+    const others = GRADE_FIELDS.filter(other => other.key !== field.key && item[other.key]).map(other => `${other.label} ${gradeLabel(item[other.key])}`).join(" · ");
+    return `<span class="chip ${legendClass(item.name)}" role="button" tabindex="0" data-player="${escapeHtml(item.name)}">${avatar(item.name, 28)}<span class="chip-text"><strong>${escapeHtml(displayName(item.name))}</strong><small>${escapeHtml(others)}</small></span><span class="chip-value">${escapeHtml(gradeLabel(item[field.key]))}</span></span>`;
+  }, "No grades yet.");
+  const rows = profiles.filter(item => GRADE_FIELDS.some(other => item[other.key]) || item.socialTrust)
+    .sort((a, b) => gradeRank(b.overallSkill) - gradeRank(a.overallSkill) || a.name.localeCompare(b.name));
+  els.gradeTableBody.innerHTML = rows.map(item => `<tr data-player="${escapeHtml(item.name)}" tabindex="0"><td><span class="table-player">${avatar(item.name, 24)}${escapeHtml(displayName(item.name))}</span></td>${GRADE_FIELDS.map(other => `<td>${gradePill(item[other.key])}</td>`).join("")}<td>${trustMark(item.socialTrust)}</td></tr>`).join("");
+  els.gradeTableBody.closest(".table-shell").hidden = !rows.length;
+}
+
+function gradeTier(grade) {
+  const letter = clean(grade).toUpperCase().charAt(0);
+  return letter && "SABCDF".includes(letter) ? letter : "";
+}
+
+function gradeRank(grade) {
+  const tier = gradeTier(grade);
+  if (!tier) return -100;
+  const modifier = /[+]$/.test(clean(grade)) ? 1 : /[-−]$/.test(clean(grade)) ? -1 : 0;
+  return (5 - "SABCDF".indexOf(tier)) * 3 + modifier;
+}
+
+function gradeLabel(grade) {
+  return clean(grade).replace(/-$/, "−");
+}
+
+function gradePill(grade) {
+  const tier = gradeTier(grade);
+  return tier ? `<span class="grade grade-${tier.toLowerCase()}">${escapeHtml(gradeLabel(grade))}</span>` : `<span class="muted">—</span>`;
+}
+
+function trustMark(value) {
+  const mark = clean(value);
+  if (mark === "+") return `<span class="trust up" title="Trusted">+</span>`;
+  if (mark === "-" || mark === "−") return `<span class="trust down" title="Distrusted">−</span>`;
+  return mark ? escapeHtml(mark) : `<span class="muted">—</span>`;
 }
 
 function tierChip(p, value, sub, tip) {
@@ -869,42 +993,116 @@ function renderRoster() {
   const query = clean(els.playerSearch.value).toLowerCase();
   const sort = els.playerSort.value;
   const people = state.stats
-    .filter(s => s.games + s.travelsGood + s.travelsEvil > 0 || player(s.player)?.rated)
-    .map(s => ({ s, p: player(s.player) }))
-    .filter(({ s }) => !query || s.player.toLowerCase().includes(query) || [...s.roles.keys()].some(role => role.toLowerCase().includes(query)));
+    .map(s => ({ s, p: player(s.player), prof: profileOf(s.player) }))
+    .filter(({ s, p, prof }) => s.games + s.travelsGood + s.travelsEvil + s.storyteller > 0 || p?.rated || prof)
+    .filter(({ s, prof }) => !query
+      || [s.player, prof?.displayName, prof?.title, prof?.status].some(value => value && value.toLowerCase().includes(query))
+      || [...s.roles.keys()].some(role => role.toLowerCase().includes(query)));
   const recent = ({ p }) => p?.lastIndex ?? -1;
+  const byName = (a, b) => displayName(a.s.player).localeCompare(displayName(b.s.player));
   people.sort((a, b) => {
-    if (sort === "name") return a.s.player.localeCompare(b.s.player);
-    if (sort === "games") return (b.p?.games || 0) - (a.p?.games || 0) || a.s.player.localeCompare(b.s.player);
+    if (sort === "name") return byName(a, b);
+    if (sort === "games") return (b.p?.games || 0) - (a.p?.games || 0) || byName(a, b);
     if (sort === "aura") return (b.p?.aura || 0) - (a.p?.aura || 0) || (b.p?.elo || 0) - (a.p?.elo || 0);
     if (sort === "winRate") return (b.p?.winRate ?? -1) - (a.p?.winRate ?? -1) || (b.p?.games || 0) - (a.p?.games || 0);
-    if (sort === "recent") return recent(b) - recent(a) || a.s.player.localeCompare(b.s.player);
-    return (b.p?.rated ? 1 : 0) - (a.p?.rated ? 1 : 0) || (b.p?.onLeaderboard ? 1 : 0) - (a.p?.onLeaderboard ? 1 : 0) || (b.p?.elo || 0) - (a.p?.elo || 0);
+    if (sort === "recent") return recent(b) - recent(a) || byName(a, b);
+    return (b.prof?.title ? 1 : 0) - (a.prof?.title ? 1 : 0) || (b.p?.rated ? 1 : 0) - (a.p?.rated ? 1 : 0) || (b.p?.onLeaderboard ? 1 : 0) - (a.p?.onLeaderboard ? 1 : 0) || (b.p?.elo || 0) - (a.p?.elo || 0) || byName(a, b);
   });
-  els.rosterGrid.innerHTML = people.map(({ s, p }) => {
-    const rated = p?.rated;
-    const badges = [p?.rank ? `<span class="badge">#${p.rank} Elo</span>` : "", p?.auraRank ? `<span class="badge badge-aura">#${p.auraRank} Aura</span>` : "", rated && !p.onLeaderboard ? `<span class="badge badge-muted">Unlisted</span>` : ""].join("");
-    return `
-      <article class="player-card ${legendClass(s.player)}" role="button" tabindex="0" data-player="${escapeHtml(s.player)}">
-        <div class="player-card-top">
-          ${sigilSvg(s.player, 56)}
-          <div>
-            <h3>${escapeHtml(s.player)}</h3>
-            <p>${rated ? escapeHtml(p.title) : "Traveller"}${s.storyteller ? ` · ST ×${s.storyteller}` : ""}</p>
-          </div>
-          <div class="player-card-elo">${rated ? `<strong>${fmtInt(p.chess)}</strong><small>chess</small>` : `<strong>—</strong><small>unrated</small>`}</div>
+  const core = people.filter(item => item.prof?.core);
+  const rest = people.filter(item => !item.prof?.core);
+  els.coreGrid.innerHTML = core.map(profileCard).join("");
+  els.othersGrid.innerHTML = rest.map(({ s, p }) => `<span class="chip ${legendClass(s.player)}" role="button" tabindex="0" data-player="${escapeHtml(s.player)}">${avatar(s.player, 28)}<span class="chip-text"><strong>${escapeHtml(displayName(s.player))}</strong><small>${escapeHtml(recordLine(s, p))}</small></span>${p?.rated ? `<span class="chip-value">${fmtInt(p.chess)}</span>` : ""}</span>`).join("");
+  els.othersHead.hidden = !rest.length || !core.length;
+  if (!people.length) els.coreGrid.innerHTML = `<p class="empty-state">No players match “${escapeHtml(query)}”.</p>`;
+}
+
+function profileCard({ s, p, prof }) {
+  const name = s.player;
+  return `
+    <article class="profile-card ${legendClass(name)}" role="button" tabindex="0" data-player="${escapeHtml(name)}">
+      <div class="profile-card-photo">${avatar(name, 84)}</div>
+      <div class="profile-card-body">
+        ${prof.title ? `<p class="profile-card-title">${crownIcon(14)}${escapeHtml(prof.title)}</p>` : ""}
+        <h3>${escapeHtml(displayName(name))}</h3>
+        ${prof.status ? `<p class="profile-card-status">${escapeHtml(prof.status)}</p>` : ""}
+        <div class="profile-card-meta">
+          <span class="profile-card-record"><strong>${escapeHtml(recordLine(s, p))}</strong>${p?.rated ? `<small>${fmtInt(p.chess)} · ${escapeHtml(p.title)}${s.storyteller ? ` · ST ×${s.storyteller}` : ""}</small>` : ""}</span>
+          <span class="badges">${awardBadges(name, true)}</span>
         </div>
-        <div class="player-card-spark" data-spark="${escapeHtml(s.player)}"></div>
-        <div class="player-card-meta">
-          <span>${rated ? `${plural(p.games, "game")} · ${p.wins}–${p.losses}` : plural(s.travelsGood + s.travelsEvil, "travel")}</span>
-          <span class="badges">${badges}</span>
-        </div>
-      </article>`;
-  }).join("") || `<p class="empty-state">No players match “${escapeHtml(query)}”.</p>`;
-  els.rosterGrid.querySelectorAll("[data-spark]").forEach(node => {
-    const p = player(node.dataset.spark);
-    renderSparkline(node, p, legendColor(node.dataset.spark));
+      </div>
+    </article>`;
+}
+
+function recordLine(s, p) {
+  if (p?.rated) return `${p.wins}–${p.losses}`;
+  if (s.storyteller && !s.games) return `Storyteller ×${s.storyteller}`;
+  const travels = s.travelsGood + s.travelsEvil;
+  return travels ? plural(travels, "travel") : "No games yet";
+}
+
+function profileOf(name) {
+  return state.profiles.get(nameKey(name)) || null;
+}
+
+function displayName(name) {
+  return profileOf(name)?.displayName || name;
+}
+
+function avatar(name, size = 40) {
+  const url = db.mediaUrl(profileOf(name)?.photoPath);
+  return url
+    ? `<img class="avatar" src="${escapeHtml(url)}" alt="" width="${size}" height="${size}" loading="lazy" decoding="async">`
+    : sigilSvg(name, size);
+}
+
+function crownIcon(size = 16) {
+  return `<svg class="crown-icon" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="M3 18 L4.5 7 L9 11.5 L12 5 L15 11.5 L19.5 7 L21 18 Z" fill="currentColor"/><rect x="3" y="19" width="18" height="2" rx="1" fill="currentColor"/></svg>`;
+}
+
+/* ---------------------------------------------------------------- awards */
+
+function computeAwards(games) {
+  const tally = new Map();
+  games.forEach(game => AWARDS.forEach(award => (game[award.key] || []).forEach(name => {
+    const key = nameKey(name);
+    if (!key) return;
+    if (!tally.has(key)) tally.set(key, { name: clean(name), mangoNectar: 0, mushroomElixir: 0 });
+    tally.get(key)[award.key] += 1;
+  })));
+  return tally;
+}
+
+function awardBadges(name, compact = false) {
+  const counts = state.awards.get(nameKey(name));
+  if (!counts) return "";
+  return AWARDS.filter(award => counts[award.key]).map(award => compact
+    ? `<span class="award-pip award-${award.cls}" title="${counts[award.key]}× ${award.name}">${awardIcon(award.cls, 14)}${counts[award.key]}</span>`
+    : `<span class="award-badge award-${award.cls}">${awardIcon(award.cls, 16)}${counts[award.key]}× ${award.name} Awardee</span>`).join("");
+}
+
+function awardIcon(cls, size = 16) {
+  if (cls === "nectar") {
+    return `<svg class="award-svg" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="M12.5 5.5c4.6.3 7.5 4.1 7.5 8.4 0 4.6-3.6 7.6-8 7.6s-8-3.1-8-7.3c0-4.6 3.7-9 8.5-8.7z" fill="currentColor"/><path d="M12.4 5.6c.6-2.4 2.6-3.8 5.3-3.6-.7 2.3-2.6 3.7-5.3 3.6z" fill="#7fd6a4"/><path d="M8 11.5c.8-1.6 2.2-2.6 3.8-2.8" stroke="rgba(255,255,255,.55)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
+  }
+  return `<svg class="award-svg" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="M2.5 12.5C2.5 7 6.8 3 12 3s9.5 4 9.5 9.5z" fill="currentColor"/><path d="M9 12.5h6l-.8 7.2a1.5 1.5 0 0 1-1.5 1.3h-1.4a1.5 1.5 0 0 1-1.5-1.3z" fill="#efe6d2"/><circle cx="8" cy="8.6" r="1.5" fill="rgba(255,255,255,.75)"/><circle cx="13.5" cy="6.4" r="1.1" fill="rgba(255,255,255,.75)"/><circle cx="16.4" cy="9.6" r="1.3" fill="rgba(255,255,255,.75)"/></svg>`;
+}
+
+function renderAwards() {
+  document.querySelectorAll("[data-award-icon]").forEach(node => { node.innerHTML = awardIcon(node.dataset.awardIcon, 26); });
+  AWARDS.forEach(award => {
+    const ranked = [...state.awards.values()].filter(item => item[award.key])
+      .sort((a, b) => b[award.key] - a[award.key] || displayName(a.name).localeCompare(displayName(b.name)));
+    els[`${award.cls}Board`].innerHTML = ranked.map(item => `<li role="button" tabindex="0" data-player="${escapeHtml(item.name)}">${avatar(item.name, 34)}<span class="award-name">${escapeHtml(displayName(item.name))}</span><b>×${item[award.key]}</b></li>`).join("")
+      || `<li class="muted">None yet.</li>`;
   });
+  const names = list => list.length
+    ? list.map(name => `<span class="chip chip-small" role="button" tabindex="0" data-player="${escapeHtml(name)}">${avatar(name, 22)}<span class="chip-text"><strong>${escapeHtml(displayName(name))}</strong></span></span>`).join(" ")
+    : `<span class="muted">—</span>`;
+  els.awardsTableBody.innerHTML = [...state.model.games].reverse().map(row => `
+    <tr data-game="${escapeHtml(row.game.id)}" tabindex="0">
+      <td class="num">${row.number}</td><td>${escapeHtml(shortDate(row.game.date))}</td><td>${escapeHtml(row.game.script || "—")}</td>
+      <td>${names(row.game.mangoNectar)}</td><td>${names(row.game.mushroomElixir)}</td>
+    </tr>`).join("");
 }
 
 /* ---------------------------------------------------------------- games */
@@ -1224,15 +1422,21 @@ function openPlayerDialog(name, options = {}) {
   const s = stat(name);
   if (!p && !s) return;
   const display = p?.name || s.player;
+  const prof = profileOf(display);
   if (els.gameDialog.open) els.gameDialog.close();
   if (els.infoDialog.open) els.infoDialog.close();
+  const eyebrow = p?.rated
+    ? `${escapeHtml(TITLE_NAMES[p.title] || p.title)}${p.rank ? ` · #${p.rank} Elo` : ""}${p.auraRank ? ` · #${p.auraRank} Aura` : ""}`
+    : escapeHtml(s ? recordLine(s, p) : "");
   els.playerDialogHeading.innerHTML = `
-    ${sigilSvg(display, 64)}
+    <span class="profile-avatar">${avatar(display, 72)}</span>
     <div>
-      <p class="eyebrow">${p?.rated ? `${escapeHtml(TITLE_NAMES[p.title] || p.title)}${p.rank ? ` · #${p.rank} Elo` : ""}${p.auraRank ? ` · #${p.auraRank} Aura` : ""}` : "Traveller"}</p>
-      <h2 id="playerDialogName">${escapeHtml(display)}</h2>
+      ${prof?.title ? `<p class="profile-title-line">${crownIcon(15)}${escapeHtml(prof.title)}</p>` : ""}
+      <p class="eyebrow">${eyebrow}</p>
+      <h2 id="playerDialogName">${escapeHtml(displayName(display))}</h2>
+      ${prof?.status ? `<p class="profile-status">${escapeHtml(prof.status)}</p>` : ""}
     </div>`;
-  els.playerDialogContent.innerHTML = renderProfile(p, s);
+  els.playerDialogContent.innerHTML = profileIntro(display) + renderProfile(p, s);
   if (!options.fromRoute) setHash(`#player/${encodeURIComponent(display)}`);
   if (!els.playerDialog.open) els.playerDialog.showModal();
   els.playerDialog.querySelector(".dialog-body").scrollTop = 0;
@@ -1242,6 +1446,23 @@ function openPlayerDialog(name, options = {}) {
     requestAnimationFrame(() => drawEloChart(chartHost, series, { height: 240, onlyPlayed: true }));
   }
   bindTips(els.playerDialogContent);
+}
+
+function profileIntro(name) {
+  const prof = profileOf(name);
+  const badges = awardBadges(name);
+  const hasGrades = prof && (GRADE_FIELDS.some(field => prof[field.key]) || prof.socialTrust);
+  const lines = text => clean(text).split("\n").map(clean).filter(Boolean);
+  const listBlock = (title, text) => lines(text).length ? `<div><h4>${title}</h4><ul class="sw-list">${lines(text).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>` : "";
+  const strengths = listBlock("Strengths", prof?.strengths) + listBlock("Weaknesses", prof?.weaknesses);
+  return `
+    ${prof?.quote ? `<blockquote class="profile-quote">“${escapeHtml(prof.quote)}”</blockquote>` : ""}
+    ${badges || prof?.major ? `<div class="badge-row">${badges}${prof?.major ? `<span class="profile-major">${escapeHtml(prof.major)}</span>` : ""}</div>` : ""}
+    ${hasGrades || strengths ? `<section class="profile-section"><h3>Tier list</h3>
+      ${hasGrades ? `<div class="grade-strip">${GRADE_FIELDS.filter(field => prof[field.key]).map(field => `<div><span>${field.label}</span>${gradePill(prof[field.key])}</div>`).join("")}${prof.socialTrust ? `<div><span>Social trust</span>${trustMark(prof.socialTrust)}</div>` : ""}</div>` : ""}
+      ${strengths ? `<div class="sw-columns">${strengths}</div>` : ""}
+    </section>` : ""}
+    <div class="dialog-actions editor-only"><button class="button button-ghost" data-action="edit-profile" data-name="${escapeHtml(name)}" type="button">Edit profile</button></div>`;
 }
 
 function renderProfile(p, s) {
@@ -1274,7 +1495,7 @@ function renderProfile(p, s) {
   const extra = s ? s.history.filter(entry => entry.isTraveler).map(entry => entry.game) : [];
 
   return `
-    ${rated ? `<section class="profile-tiles">${tiles}</section>${nextLine}` : `<p class="section-copy">Travelled only, so unrated.</p>`}
+    ${rated ? `<section class="profile-tiles">${tiles}</section>${nextLine}` : s && s.travelsGood + s.travelsEvil ? `<p class="section-copy">Travelled only, so unrated.</p>` : ""}
     ${rated ? `<section class="profile-section"><h3>Rating history</h3><div class="profile-chart chart-host"></div></section>` : ""}
     <section class="profile-columns">
       <div class="profile-section">
@@ -1307,8 +1528,6 @@ function openGameDialog(gameId, options = {}) {
   els.gameDialogEyebrow.textContent = `${row ? `Game #${row.number} · ` : ""}${longDate(game.date)}`;
   els.gameDialogName.textContent = game.script || "Game";
   els.gameDialogContent.innerHTML = renderGameDialogContent(game, row);
-  els.gameDialogContent.querySelector("[data-edit-game-detail]")?.addEventListener("click", () => requestEntryUnlock(game.id));
-  els.gameDialogContent.querySelector("[data-delete-game-detail]")?.addEventListener("click", () => openDeleteDialog(game.id));
   if (!options.fromRoute) setHash(`#game/${encodeURIComponent(game.id)}`);
   if (els.playerDialog.open) els.playerDialog.close();
   if (els.infoDialog.open) els.infoDialog.close();
@@ -1348,7 +1567,8 @@ function renderGameDialogContent(game, row) {
       <div class="team team-evil ${game.outcome === "Evil" ? "is-winner" : ""}"><h3><span class="tag tag-evil">Evil</span>${game.outcome === "Evil" ? " Winners" : ""}</h3><ul class="seat-list">${evilTeam.map(seatRow).join("") || `<li class="muted">Nobody recorded.</li>`}</ul></div>
     </section>
     ${unknown.length ? `<section class="profile-section"><h3>Unknown team</h3><ul class="seat-list">${unknown.map(seatRow).join("")}</ul></section>` : ""}
-    ${state.databaseAvailable ? `<div class="dialog-actions"><button class="button button-ghost" data-edit-game-detail="${escapeHtml(game.id)}" type="button">Edit game</button><button class="button button-danger" data-delete-game-detail="${escapeHtml(game.id)}" type="button">Delete game</button></div>` : ""}`;
+    ${AWARDS.some(award => game[award.key]?.length) ? `<section class="profile-section game-awards">${AWARDS.filter(award => game[award.key]?.length).map(award => `<p class="award-line award-${award.cls}">${awardIcon(award.cls, 20)}<strong>${award.name}</strong><span class="award-names">${game[award.key].map(name => `<span class="link-like" role="button" tabindex="0" data-player="${escapeHtml(name)}">${escapeHtml(displayName(name))}</span>`).join(", ")}</span></p>`).join("")}</section>` : ""}
+    <div class="dialog-actions editor-only"><button class="button button-ghost" data-action="edit-game" data-id="${escapeHtml(game.id)}" type="button">Edit game</button><button class="button button-danger" data-action="delete-game" data-id="${escapeHtml(game.id)}" type="button">Delete game</button></div>`;
 }
 
 function getGameParticipants(game) {
@@ -1697,46 +1917,95 @@ function collectRoles(games) {
   return [...roles].sort((a, b) => a.localeCompare(b));
 }
 
-function requestEntryUnlock(gameId = "") {
-  state.pendingEditGameId = gameId;
-  els.passcodeForm.reset();
-  els.passcodeMessage.textContent = "";
-  els.passcodeMessage.classList.remove("error");
-  if (els.gameDialog.open) els.gameDialog.close();
-  els.passcodeDialog.showModal();
-  window.setTimeout(() => els.passcodeInput.focus(), 0);
-}
+/* ---------------------------------------------------------------- editors */
 
-async function submitPasscode() {
-  const passcode = els.passcodeInput.value;
-  const unlocked = state.databaseAvailable ? await verifyServerPasscode(passcode) : passcode === DEFAULT_ENTRY_PASSCODE;
-  if (unlocked) {
-    state.activePasscode = passcode;
-    els.passcodeDialog.close();
-    if (state.pendingEditGameId) {
-      const gameId = state.pendingEditGameId;
-      state.pendingEditGameId = "";
-      openEditGame(gameId);
-    } else {
-      openEntryDialog();
-    }
+function requireEditor(next) {
+  if (state.editor) {
+    next();
     return;
   }
-  els.passcodeMessage.textContent = "Incorrect passcode.";
-  els.passcodeMessage.classList.add("error");
-  els.passcodeInput.select();
+  if (!state.databaseAvailable) return;
+  state.afterSignIn = next;
+  els.signInForm.reset();
+  setMessage(els.signInMessage, "");
+  els.signInDialog.showModal();
+  window.setTimeout(() => els.signInEmail.focus(), 0);
 }
 
-async function verifyServerPasscode(passcode) {
+async function submitSignIn() {
+  const email = clean(els.signInEmail.value);
+  const password = els.signInPassword.value;
+  if (!email || !password) {
+    setMessage(els.signInMessage, "Email and password required.", true);
+    return;
+  }
+  els.signInSubmit.disabled = true;
+  setMessage(els.signInMessage, "Signing in…");
   try {
-    const response = await fetch("/api/unlock", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ passcode }),
-    });
-    return response.ok;
-  } catch {
-    return false;
+    const user = await db.signIn(email, password);
+    if (!await db.isEditor()) {
+      await db.signOut();
+      setMessage(els.signInMessage, "This account is not an editor.", true);
+      return;
+    }
+    state.editor = user;
+    els.signInDialog.close();
+    applyRuntimeMode();
+    const next = state.afterSignIn;
+    state.afterSignIn = null;
+    next?.();
+  } catch (error) {
+    setMessage(els.signInMessage, /invalid login credentials/i.test(error.message) ? "Wrong email or password." : error.message, true);
+  } finally {
+    els.signInSubmit.disabled = false;
+  }
+}
+
+async function signOutEditor() {
+  state.editor = null;
+  applyRuntimeMode();
+  await db.signOut();
+}
+
+function runAction(action, node) {
+  const id = node.dataset.id || "";
+  const actions = {
+    "close-dialog": () => node.closest("dialog")?.close(),
+    "tier-category": () => { state.tierCategory = node.dataset.category; renderPlayerTiers(); },
+    "open-photo": () => openPhoto(Number(node.dataset.index)),
+    "photo-prev": () => stepPhoto(-1),
+    "photo-next": () => stepPhoto(1),
+    "add-player": () => requireEditor(() => openProfileEditor("")),
+    "edit-profile": () => requireEditor(() => openProfileEditor(node.dataset.name)),
+    "edit-grades": () => requireEditor(openGradesEditor),
+    "edit-game": () => requireEditor(() => openEditGame(id)),
+    "delete-game": () => requireEditor(() => openDeleteDialog(id)),
+    "add-event": () => requireEditor(() => openEventEditor("")),
+    "edit-event": () => requireEditor(() => openEventEditor(id)),
+    "delete-event": () => requireEditor(deleteEventEntry),
+    "upload-photos": () => requireEditor(() => els.photoFileInput.click()),
+    "delete-photo": () => requireEditor(deleteCurrentPhoto),
+  };
+  actions[action]?.();
+}
+
+function setMessage(node, text, isError = false) {
+  node.textContent = text;
+  node.classList.toggle("error", isError);
+}
+
+// Creates player rows for names Supabase does not know yet, in order, so they
+// keep the spreadsheet-style slot order the rating model relies on.
+async function ensurePlayers(names) {
+  for (const name of names) {
+    if (profileOf(name)) continue;
+    try {
+      const saved = await db.savePlayer({ name, displayName: name });
+      state.profiles.set(nameKey(saved.name), saved);
+    } catch (error) {
+      if (error.code !== "23505") throw error;
+    }
+    if (!state.roster.some(item => nameKey(item) === nameKey(name))) state.roster.push(name);
   }
 }
 
@@ -1760,7 +2029,7 @@ function openEntryDialog() {
 
 function openEditGame(gameId) {
   const game = getAllGames().find(item => item.id === gameId);
-  if (!game || !state.databaseAvailable) return;
+  if (!game || !state.editor) return;
   state.editingGameId = game.id;
   els.entryForm.reset();
   els.entryEyebrow.textContent = "Existing result";
@@ -1775,12 +2044,15 @@ function openEditGame(gameId) {
   els.newPlayerName.value = "";
   els.newRoleName.value = "";
   els.participantRows.innerHTML = "";
+  const awarded = (list, name) => (list || []).some(item => nameKey(item) === nameKey(name));
   getGameParticipants(game).forEach(participant => {
     addParticipantRow({
       name: participant.name,
       role: participant.role,
       alignment: participant.alignment || "auto",
       result: participant.result || "Loss",
+      nectar: awarded(game.mangoNectar, participant.name),
+      elixir: awarded(game.mushroomElixir, participant.name),
     });
   });
   if (!els.participantRows.children.length) addParticipantRow();
@@ -1841,6 +2113,8 @@ function addParticipantRow(data = {}) {
   node.querySelector('[data-field="role"]').value = data.role || "";
   node.querySelector('[data-field="alignment"]').value = data.alignment || "auto";
   node.querySelector('[data-field="result"]').value = data.result || "Loss";
+  node.querySelector('[data-field="nectar"]').checked = Boolean(data.nectar);
+  node.querySelector('[data-field="elixir"]').checked = Boolean(data.elixir);
   node.querySelector(".remove-participant").addEventListener("click", () => { node.remove(); renderEntryPreview(); });
   node.querySelector('[data-field="role"]').addEventListener("change", () => {
     updateParticipantAlignmentFromRole(node);
@@ -1890,6 +2164,8 @@ function readParticipants() {
       alignmentValue: row.querySelector('[data-field="alignment"]').value,
       resultValue: row.querySelector('[data-field="result"]').value,
       resolved: resolveEntryAlignment(row),
+      nectar: row.querySelector('[data-field="nectar"]').checked,
+      elixir: row.querySelector('[data-field="elixir"]').checked,
     }))
     .filter(item => item.name && item.role);
 }
@@ -1958,32 +2234,26 @@ async function saveEntry() {
     lossNames,
     roles,
     alignmentOverrides,
+    mangoNectar: participants.filter(item => item.nectar).map(item => item.name),
+    mushroomElixir: participants.filter(item => item.elixir).map(item => item.name),
   };
 
-  if (!state.databaseAvailable) {
-    els.entryMessage.textContent = "Start node server.mjs to save to the database.";
-    els.entryMessage.classList.add("error");
+  if (!state.editor) {
+    setMessage(els.entryMessage, "Sign in to save.", true);
     return;
   }
+  els.saveEntry.disabled = true;
+  setMessage(els.entryMessage, "Saving…");
   try {
-    const isEditing = Boolean(state.editingGameId);
-    const response = await fetch(isEditing ? `/api/games/${encodeURIComponent(state.editingGameId)}` : "/api/games", {
-      method: isEditing ? "PUT" : "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ passcode: state.activePasscode, game }),
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      els.entryMessage.textContent = payload.error || "Could not save game.";
-      els.entryMessage.classList.add("error");
-      return;
-    }
-    if (isEditing) state.games = state.games.map(item => (item.id === payload.game.id ? payload.game : item));
-    else state.games.push(payload.game);
-  } catch {
-    els.entryMessage.textContent = "Database server is unavailable.";
-    els.entryMessage.classList.add("error");
+    await ensurePlayers(participants.map(item => item.name));
+    const saved = withAwards(await db.saveGame(game, state.editingGameId));
+    if (state.editingGameId) state.games = state.games.map(item => (item.id === saved.id ? saved : item));
+    else state.games.push(saved);
+  } catch (error) {
+    setMessage(els.entryMessage, error.message || "Could not save game.", true);
     return;
+  } finally {
+    els.saveEntry.disabled = false;
   }
 
   participants.forEach(item => {
@@ -2016,34 +2286,20 @@ function openDeleteDialog(gameId) {
   els.deleteGameSummary.textContent = `${game.outcome} victory, ${game.playerCount || countParticipants(game)} players, storyteller ${game.storyteller || "unknown"}.`;
   if (els.gameDialog.open) els.gameDialog.close();
   els.deleteDialog.showModal();
-  window.setTimeout(() => els.deletePasscodeInput.focus(), 0);
+  window.setTimeout(() => els.deleteConfirm.focus(), 0);
 }
 
 async function deleteSelectedGame() {
   const gameId = state.pendingDeleteGameId;
-  const passcode = els.deletePasscodeInput.value;
-  if (!gameId || !passcode) {
-    els.deleteMessage.textContent = "Passcode required.";
-    els.deleteMessage.classList.add("error");
-    return;
-  }
+  if (!gameId) return;
+  els.deleteConfirm.disabled = true;
   try {
-    const response = await fetch(`/api/games/${encodeURIComponent(gameId)}`, {
-      method: "DELETE",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ passcode }),
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      els.deleteMessage.textContent = payload.error || "Could not delete game.";
-      els.deleteMessage.classList.add("error");
-      els.deletePasscodeInput.select();
-      return;
-    }
-  } catch {
-    els.deleteMessage.textContent = "Database server is unavailable.";
-    els.deleteMessage.classList.add("error");
+    await db.deleteGame(gameId);
+  } catch (error) {
+    setMessage(els.deleteMessage, error.message || "Could not delete game.", true);
     return;
+  } finally {
+    els.deleteConfirm.disabled = false;
   }
   state.games = state.games.filter(game => game.id !== gameId);
   state.pendingDeleteGameId = "";
@@ -2051,6 +2307,395 @@ async function deleteSelectedGame() {
   rebuild();
   location.hash = "#games";
   setView("games");
+}
+
+/* ---------------------------------------------------------------- profile editor */
+
+function openProfileEditor(name) {
+  const row = name ? profileOf(name) : null;
+  state.editingProfile = row?.name || "";
+  const p = row || { name: name || "" };
+  els.profileForm.reset();
+  els.profileDialogTitle.textContent = name ? displayName(name) : "New player";
+  els.profileName.value = p.name || "";
+  els.profileName.readOnly = Boolean(name);
+  els.profileDisplayName.value = p.displayName && p.displayName !== p.name ? p.displayName : "";
+  els.profileCore.checked = Boolean(p.core);
+  ["title", "major", "status", "quote", "strengths", "weaknesses"].forEach(key => { els[`profile${capitalize(key)}`].value = p[key] || ""; });
+  els.profileForm.querySelectorAll("[data-grade-options]").forEach(select => { select.innerHTML = gradeOptions(p[select.id.replace(/^profile/, "").replace(/^./, c => c.toLowerCase())]); });
+  els.profileSocialTrust.innerHTML = trustOptions(p.socialTrust);
+  els.profilePhotoPreview.innerHTML = name ? avatar(name, 120) : sigilSvg(p.name || "?", 120);
+  setMessage(els.profileMessage, "");
+  els.profileDialog.showModal();
+  window.setTimeout(() => (name ? els.profileDisplayName : els.profileName).focus(), 0);
+}
+
+function previewProfilePhoto() {
+  const file = els.profilePhotoInput.files[0];
+  if (!file) return;
+  els.profilePhotoRemove.checked = false;
+  els.profilePhotoPreview.innerHTML = `<img class="avatar" src="${URL.createObjectURL(file)}" alt="" width="120" height="120">`;
+}
+
+async function saveProfile() {
+  const name = clean(els.profileName.value);
+  if (!name) {
+    setMessage(els.profileMessage, "Name is required.", true);
+    return;
+  }
+  const existing = state.editingProfile ? profileOf(state.editingProfile) : null;
+  if (!existing && profileOf(name)) {
+    setMessage(els.profileMessage, `${profileOf(name).name} already exists.`, true);
+    return;
+  }
+  const profile = {
+    name,
+    displayName: clean(els.profileDisplayName.value) || name,
+    core: els.profileCore.checked,
+    title: clean(els.profileTitle.value),
+    major: clean(els.profileMajor.value),
+    status: clean(els.profileStatus.value),
+    quote: clean(els.profileQuote.value).replace(/^[“"]|[”"]$/g, ""),
+    overallSkill: els.profileOverallSkill.value,
+    goodSkill: els.profileGoodSkill.value,
+    evilSkill: els.profileEvilSkill.value,
+    gameImpact: els.profileGameImpact.value,
+    socialTrust: els.profileSocialTrust.value,
+    strengths: multiline(els.profileStrengths.value),
+    weaknesses: multiline(els.profileWeaknesses.value),
+    photoPath: existing?.photoPath || "",
+  };
+  const oldPhoto = profile.photoPath;
+  const file = els.profilePhotoInput.files[0];
+  els.profileSave.disabled = true;
+  setMessage(els.profileMessage, "Saving…");
+  try {
+    if (file) {
+      const image = await shrinkImage(file, 640);
+      profile.photoPath = await db.uploadMedia(`players/${slugify(name)}-${Date.now()}.jpg`, image.blob);
+    } else if (els.profilePhotoRemove.checked) {
+      profile.photoPath = "";
+    }
+    const saved = await db.savePlayer(profile, existing?.name || "");
+    if (oldPhoto && oldPhoto !== saved.photoPath) db.deleteMedia(oldPhoto).catch(error => console.warn(error));
+    state.profiles.set(nameKey(saved.name), saved);
+    if (!state.roster.some(item => nameKey(item) === nameKey(saved.name))) state.roster.push(saved.name);
+    els.profileDialog.close();
+    rebuild();
+    openPlayerDialog(saved.name);
+  } catch (error) {
+    setMessage(els.profileMessage, error.message || "Could not save.", true);
+  } finally {
+    els.profileSave.disabled = false;
+  }
+}
+
+function gradeOptions(value = "") {
+  const options = GRADE_OPTIONS.includes(value) || !value ? GRADE_OPTIONS : [value, ...GRADE_OPTIONS];
+  return `<option value="">—</option>${options.map(grade => `<option value="${escapeHtml(grade)}"${grade === value ? " selected" : ""}>${escapeHtml(gradeLabel(grade))}</option>`).join("")}`;
+}
+
+function trustOptions(value = "") {
+  const mark = value === "−" ? "-" : value;
+  return [["", "—"], ["+", "+"], ["-", "−"]].map(([option, label]) => `<option value="${option}"${option === mark ? " selected" : ""}>${label}</option>`).join("");
+}
+
+/* ---------------------------------------------------------------- grades editor */
+
+function openGradesEditor() {
+  const names = [...state.profiles.values()]
+    .filter(item => item.core || GRADE_FIELDS.some(field => item[field.key]) || item.socialTrust)
+    .sort((a, b) => gradeRank(b.overallSkill) - gradeRank(a.overallSkill) || displayName(a.name).localeCompare(displayName(b.name)))
+    .map(item => item.name);
+  els.gradesBody.innerHTML = names.map(gradesRow).join("");
+  refreshGradesAdd();
+  setMessage(els.gradesMessage, "");
+  els.gradesDialog.showModal();
+}
+
+function gradesRow(name) {
+  const p = profileOf(name) || {};
+  return `<tr data-grades-name="${escapeHtml(name)}"><th scope="row">${escapeHtml(displayName(name))}</th>${GRADE_FIELDS.map(field => `<td><select data-grade="${field.key}" aria-label="${escapeHtml(`${displayName(name)} ${field.label}`)}">${gradeOptions(p[field.key])}</select></td>`).join("")}<td><select data-grade="socialTrust" aria-label="${escapeHtml(`${displayName(name)} social trust`)}">${trustOptions(p.socialTrust)}</select></td></tr>`;
+}
+
+function refreshGradesAdd() {
+  const listed = new Set([...els.gradesBody.querySelectorAll("tr")].map(row => nameKey(row.dataset.gradesName)));
+  const options = state.players.filter(name => !listed.has(nameKey(name))).sort((a, b) => displayName(a).localeCompare(displayName(b)));
+  els.gradesAdd.innerHTML = `<option value="">Choose…</option>${options.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(displayName(name))}</option>`).join("")}`;
+}
+
+function addGradesRow() {
+  if (!els.gradesAdd.value) return;
+  els.gradesBody.insertAdjacentHTML("beforeend", gradesRow(els.gradesAdd.value));
+  refreshGradesAdd();
+}
+
+async function saveGrades() {
+  const keys = [...GRADE_FIELDS.map(field => field.key), "socialTrust"];
+  const changes = [...els.gradesBody.querySelectorAll("tr")].map(row => {
+    const name = row.dataset.gradesName;
+    const values = Object.fromEntries(keys.map(key => [key, row.querySelector(`[data-grade="${key}"]`).value]));
+    return { name, values, existing: profileOf(name) };
+  }).filter(({ values, existing }) => keys.some(key => (existing?.[key] || "") !== values[key]));
+  if (!changes.length) {
+    els.gradesDialog.close();
+    return;
+  }
+  els.gradesSave.disabled = true;
+  setMessage(els.gradesMessage, "Saving…");
+  try {
+    const saved = await Promise.all(changes.map(({ name, values, existing }) => existing
+      ? db.savePlayer(values, existing.name)
+      : db.savePlayer({ name, displayName: name, ...values })));
+    saved.forEach(item => state.profiles.set(nameKey(item.name), item));
+    els.gradesDialog.close();
+    rebuild();
+  } catch (error) {
+    setMessage(els.gradesMessage, error.message || "Could not save grades.", true);
+  } finally {
+    els.gradesSave.disabled = false;
+  }
+}
+
+/* ---------------------------------------------------------------- upcoming events */
+
+function upcomingEvents() {
+  const cutoff = Date.now() - 6 * 3600 * 1000;
+  return state.events.filter(event => new Date(event.startsAt).getTime() >= cutoff)
+    .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+}
+
+function renderEvents() {
+  const upcoming = upcomingEvents();
+  const past = state.events.filter(event => !upcoming.includes(event)).sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt));
+  els.eventsList.innerHTML = upcoming.map(eventCard).join("") || `<p class="empty-state">Nothing scheduled.</p>`;
+  els.pastEvents.hidden = !past.length;
+  els.pastEvents.innerHTML = past.length ? `<details><summary>Past (${past.length})</summary><div class="event-list">${past.map(eventCard).join("")}</div></details>` : "";
+}
+
+function eventCard(event) {
+  const date = new Date(event.startsAt);
+  const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const meta = [time, event.location, event.format, event.script, event.storyteller ? `ST ${event.storyteller}` : ""].filter(Boolean);
+  return `
+    <article class="event-card panel">
+      <div class="event-date"><span>${date.toLocaleDateString("en-US", { month: "short" })}</span><strong>${date.getDate()}</strong><small>${date.toLocaleDateString("en-US", { weekday: "short" })}</small></div>
+      <div class="event-body">
+        <h3>${escapeHtml(event.title)}</h3>
+        <p class="event-meta">${meta.map(escapeHtml).join(" · ")}</p>
+        ${event.notes ? `<p class="event-notes">${escapeHtml(event.notes)}</p>` : ""}
+      </div>
+      <button class="button button-ghost editor-only" data-action="edit-event" data-id="${escapeHtml(event.id)}" type="button">Edit</button>
+    </article>`;
+}
+
+function openEventEditor(id) {
+  const event = state.events.find(item => item.id === id);
+  state.editingEventId = event?.id || "";
+  els.eventForm.reset();
+  els.eventDialogTitle.textContent = event ? "Edit event" : "New event";
+  els.eventTitle.value = event?.title || "Game night";
+  els.eventStartsAt.value = localInputValue(event ? new Date(event.startsAt) : defaultEventDate());
+  els.eventLocation.value = event?.location || "";
+  els.eventFormat.value = event?.format || "";
+  els.eventScript.value = event?.script || "";
+  els.eventStoryteller.value = event?.storyteller || "";
+  els.eventNotes.value = event?.notes || "";
+  els.eventDelete.hidden = !event;
+  setMessage(els.eventMessage, "");
+  els.eventDialog.showModal();
+}
+
+async function saveEventEntry() {
+  const startsAt = new Date(els.eventStartsAt.value);
+  if (!clean(els.eventTitle.value) || Number.isNaN(startsAt.getTime())) {
+    setMessage(els.eventMessage, "Title and date required.", true);
+    return;
+  }
+  const event = {
+    title: clean(els.eventTitle.value),
+    startsAt: startsAt.toISOString(),
+    location: clean(els.eventLocation.value),
+    format: els.eventFormat.value,
+    script: clean(els.eventScript.value),
+    storyteller: clean(els.eventStoryteller.value),
+    notes: clean(els.eventNotes.value),
+  };
+  els.eventSave.disabled = true;
+  try {
+    const saved = await db.saveEvent(event, state.editingEventId);
+    state.events = state.editingEventId ? state.events.map(item => (item.id === saved.id ? saved : item)) : [...state.events, saved];
+    els.eventDialog.close();
+    rebuild();
+  } catch (error) {
+    setMessage(els.eventMessage, error.message || "Could not save event.", true);
+  } finally {
+    els.eventSave.disabled = false;
+  }
+}
+
+async function deleteEventEntry() {
+  const id = state.editingEventId;
+  if (!id || !window.confirm("Delete this event?")) return;
+  try {
+    await db.deleteEvent(id);
+    state.events = state.events.filter(item => item.id !== id);
+    els.eventDialog.close();
+    rebuild();
+  } catch (error) {
+    setMessage(els.eventMessage, error.message || "Could not delete event.", true);
+  }
+}
+
+function defaultEventDate() {
+  const date = new Date();
+  if (date.getHours() >= 19) date.setDate(date.getDate() + 1);
+  date.setHours(19, 0, 0, 0);
+  return date;
+}
+
+function localInputValue(date) {
+  const pad = value => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/* ---------------------------------------------------------------- gallery */
+
+function renderGallery() {
+  state.photos.sort((a, b) => (b.takenOn || "").localeCompare(a.takenOn || "") || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  els.galleryGrid.innerHTML = state.photos.map((photo, index) => `
+    <figure class="photo-tile" role="button" tabindex="0" data-action="open-photo" data-index="${index}">
+      <img src="${escapeHtml(db.mediaUrl(photo.path))}" alt="${escapeHtml(photo.caption || "Photo")}" loading="lazy" decoding="async"${photo.width && photo.height ? ` width="${photo.width}" height="${photo.height}"` : ""}>
+      ${photo.caption ? `<figcaption>${escapeHtml(photo.caption)}</figcaption>` : ""}
+    </figure>`).join("") || `<p class="empty-state">No photos yet.</p>`;
+}
+
+function openPhoto(index) {
+  if (!state.photos[index]) return;
+  state.photoIndex = index;
+  showPhoto();
+  if (!els.photoDialog.open) els.photoDialog.showModal();
+}
+
+function showPhoto() {
+  const photo = state.photos[state.photoIndex];
+  if (!photo) {
+    els.photoDialog.close();
+    return;
+  }
+  els.photoImage.src = db.mediaUrl(photo.path);
+  els.photoImage.alt = photo.caption || "Photo";
+  els.photoCaption.textContent = photo.caption;
+  els.photoCaption.hidden = !photo.caption;
+  els.photoMeta.textContent = [photo.takenOn ? isoLongDate(photo.takenOn) : "", `${state.photoIndex + 1} of ${state.photos.length}`].filter(Boolean).join(" · ");
+  els.photoCaptionInput.value = photo.caption;
+  els.photoDateInput.value = photo.takenOn || "";
+  els.photoPrev.disabled = state.photoIndex <= 0;
+  els.photoNext.disabled = state.photoIndex >= state.photos.length - 1;
+  setMessage(els.photoMessage, "");
+}
+
+function stepPhoto(delta) {
+  const next = state.photoIndex + delta;
+  if (next < 0 || next >= state.photos.length) return;
+  state.photoIndex = next;
+  showPhoto();
+}
+
+async function savePhotoDetails() {
+  const photo = state.photos[state.photoIndex];
+  if (!photo || !state.editor) return;
+  try {
+    const saved = await db.savePhoto({ caption: clean(els.photoCaptionInput.value), takenOn: els.photoDateInput.value }, photo.id);
+    Object.assign(photo, saved);
+    renderGallery();
+    state.photoIndex = state.photos.indexOf(photo);
+    showPhoto();
+    setMessage(els.photoMessage, "Saved.");
+  } catch (error) {
+    setMessage(els.photoMessage, error.message || "Could not save.", true);
+  }
+}
+
+async function deleteCurrentPhoto() {
+  const photo = state.photos[state.photoIndex];
+  if (!photo || !window.confirm("Delete this photo?")) return;
+  try {
+    await db.deletePhoto(photo);
+    state.photos = state.photos.filter(item => item !== photo);
+    state.photoIndex = Math.min(state.photoIndex, state.photos.length - 1);
+    rebuild();
+    if (state.photos.length) showPhoto();
+    else els.photoDialog.close();
+  } catch (error) {
+    setMessage(els.photoMessage, error.message || "Could not delete.", true);
+  }
+}
+
+function openUploadDialog(files) {
+  const images = files.filter(file => file.type.startsWith("image/") || /\.(heic|heif)$/i.test(file.name));
+  if (!images.length) return;
+  state.uploads.forEach(item => URL.revokeObjectURL(item.url));
+  state.uploads = images.map(file => ({ file, url: URL.createObjectURL(file), done: false }));
+  els.uploadList.innerHTML = state.uploads.map((item, index) => `
+    <div class="upload-row" data-upload-row="${index}">
+      <img src="${item.url}" alt="">
+      <label class="field field-block">Caption<input type="text" data-upload-caption="${index}" autocomplete="off"></label>
+    </div>`).join("");
+  els.uploadDate.value = isoDate(new Date(images[0].lastModified || Date.now()));
+  setMessage(els.uploadMessage, `${plural(images.length, "photo")}.`);
+  els.uploadDialog.showModal();
+}
+
+async function uploadPhotos() {
+  const pending = state.uploads.filter(item => !item.done);
+  if (!pending.length) return;
+  els.uploadSave.disabled = true;
+  try {
+    for (const item of pending) {
+      const index = state.uploads.indexOf(item);
+      setMessage(els.uploadMessage, `Uploading ${index + 1} of ${state.uploads.length}…`);
+      const image = await shrinkImage(item.file, 2000);
+      const path = await db.uploadMedia(`gallery/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`, image.blob);
+      const caption = clean(els.uploadList.querySelector(`[data-upload-caption="${index}"]`).value);
+      const photo = await db.savePhoto({ path, caption, takenOn: els.uploadDate.value, width: image.width, height: image.height });
+      state.photos.push(photo);
+      item.done = true;
+      els.uploadList.querySelector(`[data-upload-row="${index}"]`).classList.add("is-done");
+    }
+    els.uploadDialog.close();
+    rebuild();
+    location.hash = "#gallery";
+  } catch (error) {
+    setMessage(els.uploadMessage, error.message || "Upload failed.", true);
+    rebuild();
+  } finally {
+    els.uploadSave.disabled = false;
+  }
+}
+
+// Re-encodes an image as JPEG no larger than maxSide. Re-encoding also drops
+// EXIF metadata such as GPS location.
+async function shrinkImage(file, maxSide, quality = 0.85) {
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    throw new Error(`Can't read ${file.name}. Save it as JPEG or PNG and try again.`);
+  }
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#14101e";
+  context.fillRect(0, 0, width, height);
+  context.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close?.();
+  const blob = await new Promise((resolve, reject) => canvas.toBlob(result => (result ? resolve(result) : reject(new Error("Could not process the image."))), "image/jpeg", quality));
+  return { blob, width, height };
 }
 
 /* ---------------------------------------------------------------- CSV export */
@@ -2202,6 +2847,28 @@ function sheetDateToHtmlDate(value) {
   const date = parseSheetDate(value);
   if (!date) return "";
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function isoDate(date) {
+  const pad = value => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function isoLongDate(value) {
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function capitalize(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function multiline(value) {
+  return String(value || "").split("\n").map(line => line.replace(/^\s*[-•]\s*/, "").trim()).filter(Boolean).join("\n");
+}
+
+function slugify(value) {
+  return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "player";
 }
 
 function ratio(numerator, denominator) {
