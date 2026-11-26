@@ -244,9 +244,10 @@ function applyRuntimeMode() {
   document.body.classList.toggle("is-readonly", !state.databaseAvailable);
   document.body.classList.toggle("is-editor", Boolean(state.editor));
   els.eggButton.hidden = !state.databaseAvailable;
-  els.eggButton.title = state.editor ? "Enter a game" : "Storyteller sign-in";
+  els.eggButton.title = state.editor ? "Enter a game" : "Member sign-in";
   els.eggButton.setAttribute("aria-label", els.eggButton.title);
   els.editorBar.hidden = !state.editor;
+  els.signInBar.hidden = !state.databaseAvailable || Boolean(state.editor);
   els.editorEmail.textContent = state.editor?.email || "";
   document.querySelector('[data-nav="gallery"]').hidden = !state.photos.length && !state.editor;
   document.querySelector('[data-nav="events"]').hidden = !upcomingEvents().length && !state.editor;
@@ -1945,7 +1946,7 @@ async function submitSignIn() {
     const user = await db.signIn(email, password);
     if (!await db.isEditor()) {
       await db.signOut();
-      setMessage(els.signInMessage, "This account is not an editor.", true);
+      setMessage(els.signInMessage, "This account isn't a member yet.", true);
       return;
     }
     state.editor = user;
@@ -1971,6 +1972,7 @@ function runAction(action, node) {
   const id = node.dataset.id || "";
   const actions = {
     "close-dialog": () => node.closest("dialog")?.close(),
+    "sign-in": () => requireEditor(() => {}),
     "tier-category": () => { state.tierCategory = node.dataset.category; renderPlayerTiers(); },
     "open-photo": () => openPhoto(Number(node.dataset.index)),
     "photo-prev": () => stepPhoto(-1),

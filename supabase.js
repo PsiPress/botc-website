@@ -129,7 +129,7 @@ async function request(path, { method = "GET", body, headers = {}, auth = true, 
 
 function errorMessage(payload, status) {
   if (payload && typeof payload === "object") {
-    if (payload.code === "42501" || /row-level security/i.test(payload.message || "")) return "Not allowed: this account is not an editor.";
+    if (payload.code === "42501" || /row-level security/i.test(payload.message || "")) return "Not allowed: this account isn't a member.";
     if (payload.code === "23505") return "That already exists.";
     const message = payload.message || payload.msg || payload.error_description || payload.error;
     if (message) return String(message);

@@ -2,7 +2,7 @@
 
 ## Project
 
-This repo is a Blood on the Clocktower stats website for Psi Press: a static site on GitHub Pages (`https://thepsipress.github.io/botc-website/`) backed by a Supabase database. Editors sign in on the site to add, edit and delete games, player profiles, tier grades, events and photos.
+This repo is a Blood on the Clocktower stats website for Psi Press: a static site deployed on Vercel (custom domain) and backed by a Supabase database. Everything is publicly viewable; members sign in on the site to add, edit and delete games, player profiles, tier grades, events and photos. Member accounts are created ahead of time by the club (no public sign-up). In code and SQL a member is called an "editor" (`private.editors`, `public.is_editor()`, `state.editor`).
 
 `Blood on the Clocktower - Games Sheet.csv` is the archive of the first 30 games, regenerated in 2026-11 from the `Games` tab of the club's "Master Sheet with Elo" workbook (38 player columns ending in `Gack`), with the `Format` column (In-Person / Online) merged in from that workbook's `Record` tab. The CSV therefore uses the Record layout: `date, Outcome, Final Day, Storyteller, Player Count, Format, Script, Win, Loss, <players...>`. `games-sheet.mjs` and `app.js` also still accept a straight export of the Games tab (no `Format` column). Once Supabase is live it is the source of truth for games; the CSV seeds it and backs the read-only fallback.
 
@@ -25,7 +25,7 @@ Files: `supabase/setup.sql` (schema, permissions, storage bucket; safe to re-run
 Setup for a new project:
 
 1. Create a Supabase project. SQL Editor: run `supabase/setup.sql`, then `supabase/seed.sql`.
-2. Authentication -> Users -> Add user for each editor (email + password, auto-confirm). Then in SQL: `select private.add_editor('their@email');` (`private.remove_editor` undoes it).
+2. Authentication -> Users -> Add user -> Create new user for each member (email + password, auto-confirm). Then in SQL: `select private.add_editor('their@email');` (`private.remove_editor` undoes it). To make every existing account a member at once: `insert into private.editors (user_id) select id from auth.users on conflict do nothing;` (only safe while sign-ups are off). There is no in-site password change or reset; passwords are managed in the Supabase dashboard.
 3. Authentication -> Sign In / Providers: turn off "Allow new users to sign up". (Accounts not in `private.editors` cannot edit anyway.)
 4. Project Settings -> API: put the Project URL and the publishable key (or legacy anon key) in `supabase-config.js`. Never a secret / service_role key; `supabase.js` refuses one.
 
@@ -42,15 +42,15 @@ Loading order in `app.js`: Supabase (if configured and it has games) -> static `
 
 `site-data.json` holds the profiles, grades and awards used for the seed and the fallback. Sources: profiles (major, status, quote) from the "Clocktower Website Stuff" doc; grades and strengths/weaknesses from the Player Rankings sheet's "Updated Profiles" tab, Social Trust from its older "Player Profiles" tab; awards from the doc's numbered lists (award N = game N in CSV order; every awardee was checked against that game's players). The sheet's storyteller Notes and Direction columns are deliberately not published. After editing the CSV or `site-data.json`, run `node generate-games-sheet-json.mjs` and `node generate-supabase-seed.mjs`. Once Supabase is live, edit on the site instead; `site-data.json` will go stale, which only affects the fallback.
 
-## GitHub Pages
+## Deployment (Vercel)
 
-`.github/workflows/pages.yml` deploys `index.html`, `styles.css`, `app.js`, `ratings.js`, `supabase.js`, `supabase-config.js`, `.nojekyll`, the CSV, `games-sheet.json` and `site-data.json` from `_site`. Any new browser module or data file must be added to that copy step. One concurrency group; a newer run cancels an older in-progress one.
+Vercel builds from `main` using `vercel.json`: `node build-site.mjs` copies the browser files (`index.html`, `styles.css`, `app.js`, `ratings.js`, `supabase.js`, `supabase-config.js`, `games-sheet.json`, `site-data.json`, the CSV) into `_site/`, which Vercel serves. Any new browser module or data file must be added to `FILES` in `build-site.mjs`. `_site/` is git-ignored. Framework preset: Other; no install step (no `package.json`). Sign-in uses Supabase's password grant, so no Supabase redirect URLs or Site URL need configuring for the domain.
 
-Pages setting: Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+GitHub Pages is legacy. The repo's Pages setting still deploys `main` from the branch root to `https://thepsipress.github.io/botc-website/` until it is turned off (Settings -> Pages). The old `.github/workflows/pages.yml` was removed in 2026-11: it failed on every run (`deploy-pages` could not see the artifact `upload-pages-artifact` had just uploaded in the same job) and duplicated the branch deploy.
 
-## Editors
+## Members (editors)
 
-The round `ST` button opens the sign-in dialog (email + password) and then the game entry dialog. Once signed in, controls marked `.editor-only` appear (hidden by CSS unless `body.is-editor`): Edit/Delete in game popups, Edit profile in player popups, Add player, Edit grades, Add/Edit event, Upload photos, caption/date/delete in the photo viewer. The footer shows "Signed in as … · Sign out". Clicks on `[data-action]` go through one delegated handler (`runAction`).
+The footer's "Member sign-in" link (shown when Supabase is connected) opens the sign-in dialog. The round `ST` button does the same and then opens the game entry dialog. Once signed in, controls marked `.editor-only` appear (hidden by CSS unless `body.is-editor`): Edit/Delete in game popups, Edit profile in player popups, Add player, Edit grades, Add/Edit event, Upload photos, caption/date/delete in the photo viewer. The footer shows "Signed in as … · Sign out". Clicks on `[data-action]` go through one delegated handler (`runAction`).
 
 ## Frontend Structure
 
@@ -60,6 +60,7 @@ The round `ST` button opens the sign-in dialog (email + password) and then the g
 - `app.js`: ES module. Loading, hash routing, derivation of the role-based "spreadsheet" stats, all rendering, hand-written SVG charts, procedural SVG player sigils (used when a player has no photo), CSV export, and every editor flow.
 - `supabase.js`, `supabase-config.js`: see Supabase.
 - `server.mjs`: local static preview server.
+- `build-site.mjs`, `vercel.json`: Vercel build (see Deployment).
 - `games-sheet.mjs`: dependency-free CSV reader shared by the generators. `generate-games-sheet-json.mjs` writes `games-sheet.json`; `generate-supabase-seed.mjs` writes `supabase/seed.sql`.
 
 Routing is hash based: `#home`, `#rankings`, `#tiers`, `#players`, `#awards`, `#games`, `#stats`, `#events`, `#gallery`, `#about`. `#player/<Name>` and `#game/<id>` deep-link straight into a profile or game popup. Anything with `data-player`, `data-game` or `data-duo` opens the matching dialog.
@@ -112,9 +113,9 @@ New players: type a new name in a participant row, or use `New player` / `Add ne
 - `node --check` on `app.js`, `ratings.js`, `supabase.js`, `server.mjs`.
 - Rating engine compared value-by-value against the workbook (all checks passed); role-based stats against the Player Stats tab (only the three sheet inconsistencies differ).
 - `supabase/setup.sql` and `seed.sql` run (twice) on a local Postgres 16 set up with Supabase's roles and auth/storage schemas. Row-level security checked for anonymous, signed-in non-editor and editor users on every table and on storage.
-- Browser end-to-end test (headless Chromium, Pages file set, local stand-in for the Supabase REST/Auth/Storage endpoints running the real policies): load from Supabase, wrong password, non-editor refused, add a game with a new player and awards, edit it, profile edit with photo upload and replacement (old file deleted), add a player, grades editor, event add/edit/delete, photo upload (3200 px GPS-tagged JPEG stored as 2000 px with no EXIF), caption edit, photo delete, game delete, expired-token refresh, sign out, visitor view. No console errors.
+- Browser end-to-end test (headless Chromium, the `build-site.mjs` output, local stand-in for the Supabase REST/Auth/Storage endpoints running the real policies): load from Supabase, wrong password, non-editor refused, add a game with a new player and awards, edit it, profile edit with photo upload and replacement (old file deleted), add a player, grades editor, event add/edit/delete, photo upload (3200 px GPS-tagged JPEG stored as 2000 px with no EXIF), caption edit, photo delete, game delete, expired-token refresh, sign out, visitor view. No console errors.
 - Read-only fallback (no Supabase): 30 games, profiles, grades and awards from the snapshots; `ST` and editor controls hidden.
-- Not yet verified against a real Supabase project (none was reachable from the build environment).
+- The real Supabase project was set up by the club (setup + seed applied: 30 games, 38 players; editor account added). The build environment cannot reach Supabase or the deployed site, so live behaviour is checked by the club in the browser.
 
 ## Worktree Notes
 
