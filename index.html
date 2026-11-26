@@ -466,12 +466,13 @@ Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
     <footer class="site-footer">
       <p><span class="footer-mark">Ψ</span> Psi Press · Blood on the Clocktower · <span id="footerUpdated"></span></p>
       <p class="footer-small">Blood on the Clocktower is a game by The Pandemonium Institute. This is an unofficial fan stats site.</p>
+      <p class="editor-bar" id="signInBar" hidden><button type="button" class="link-button" data-action="sign-in">Member sign-in</button></p>
       <p class="editor-bar" id="editorBar" hidden>Signed in as <span id="editorEmail"></span> · <button type="button" class="link-button" id="signOutButton">Sign out</button></p>
     </footer>
 
     <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
-    <button id="eggButton" class="st-button" type="button" title="Storyteller: enter a game" aria-label="Storyteller: enter a game">ST</button>
+    <button id="eggButton" class="st-button" type="button" title="Member sign-in" aria-label="Member sign-in">ST</button>
 
     <dialog id="infoDialog" class="dialog dialog-small">
       <div class="dialog-body">
@@ -521,7 +522,7 @@ Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
     <dialog id="signInDialog" class="dialog dialog-small">
       <form id="signInForm" class="dialog-body">
         <div class="dialog-heading">
-          <div><p class="eyebrow">Storyteller</p><h2>Sign in</h2></div>
+          <div><p class="eyebrow">Members</p><h2>Sign in</h2></div>
           <button class="icon-button" data-action="close-dialog" aria-label="Close" type="button">×</button>
         </div>
         <label class="field field-block">Email<input id="signInEmail" type="email" autocomplete="username" required></label>
