@@ -2,7 +2,7 @@
 
 ## Project
 
-This repo is a Blood on the Clocktower stats website for Psi Press: a static site deployed on Vercel (custom domain) and backed by a Supabase database. Everything is publicly viewable; members sign in on the site to add, edit and delete games, player profiles, tier grades, events and photos. Member accounts are created ahead of time by the club (no public sign-up). In code and SQL a member is called an "editor" (`private.editors`, `public.is_editor()`, `state.editor`).
+This repo is a Blood on the Clocktower stats website for Psi Press: a static site deployed on Vercel at `https://www.thepsipress.com/` and backed by a Supabase database. Everything is publicly viewable; members sign in on the site to add, edit and delete games, player profiles, tier grades, events and photos. Member accounts are created ahead of time by the club (no public sign-up). In code and SQL a member is called an "editor" (`private.editors`, `public.is_editor()`, `state.editor`).
 
 `Blood on the Clocktower - Games Sheet.csv` is the archive of the first 30 games, regenerated in 2026-11 from the `Games` tab of the club's "Master Sheet with Elo" workbook (38 player columns ending in `Gack`), with the `Format` column (In-Person / Online) merged in from that workbook's `Record` tab. The CSV therefore uses the Record layout: `date, Outcome, Final Day, Storyteller, Player Count, Format, Script, Win, Loss, <players...>`. `games-sheet.mjs` and `app.js` also still accept a straight export of the Games tab (no `Format` column). Once Supabase is live it is the source of truth for games; the CSV seeds it and backs the read-only fallback.
 
@@ -44,7 +44,7 @@ Loading order in `app.js`: Supabase (if configured and it has games) -> static `
 
 ## Deployment (Vercel)
 
-Vercel builds from `main` using `vercel.json`: `node build-site.mjs` copies the browser files (`index.html`, `styles.css`, `app.js`, `ratings.js`, `supabase.js`, `supabase-config.js`, `games-sheet.json`, `site-data.json`, the CSV) into `_site/`, which Vercel serves. Any new browser module or data file must be added to `FILES` in `build-site.mjs`. `_site/` is git-ignored. Framework preset: Other; no install step (no `package.json`). Sign-in uses Supabase's password grant, so no Supabase redirect URLs or Site URL need configuring for the domain.
+Vercel builds from `main` (production: `https://www.thepsipress.com/`; each PR also gets a preview deployment) using `vercel.json`: `node build-site.mjs` copies the browser files (`index.html`, `styles.css`, `app.js`, `ratings.js`, `supabase.js`, `supabase-config.js`, `games-sheet.json`, `site-data.json`, the CSV) into `_site/`, which Vercel serves. Any new browser module or data file must be added to `FILES` in `build-site.mjs`. `_site/` is git-ignored. Framework preset: Other; no install step (no `package.json`). Sign-in uses Supabase's password grant, so no Supabase redirect URLs or Site URL need configuring for the domain.
 
 GitHub Pages is legacy. The repo's Pages setting still deploys `main` from the branch root to `https://thepsipress.github.io/botc-website/` until it is turned off (Settings -> Pages). The old `.github/workflows/pages.yml` was removed in 2026-11: it failed on every run (`deploy-pages` could not see the artifact `upload-pages-artifact` had just uploaded in the same job) and duplicated the branch deploy.
 
