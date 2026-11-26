@@ -1,0 +1,575 @@
+{
+  "players": [
+    {
+      "name": "Aden",
+      "displayName": "Aden",
+      "core": true,
+      "title": "",
+      "major": "Economics and Mathematics",
+      "status": "I am rohan",
+      "quote": "I don’t care. It’s edible.",
+      "photoPath": "",
+      "overallSkill": "C",
+      "goodSkill": "C",
+      "evilSkill": "B",
+      "gameImpact": "D",
+      "socialTrust": "",
+      "strengths": "Stays under the radar\nCan competently run/play as evil\nSome awareness of votes/solving",
+      "weaknesses": "Does not share info\nDoes not influence town\nUnderutilizes powerful roles\nDoesn't really worldbuild"
+    },
+    {
+      "name": "Alexandra",
+      "displayName": "Alexandra",
+      "core": true,
+      "title": "",
+      "major": "Applied Mathematics and Economics",
+      "status": "你沒有 concrete evidence",
+      "quote": "Its derivative is in fact itself…what does it mean?",
+      "photoPath": "",
+      "overallSkill": "B",
+      "goodSkill": "B",
+      "evilSkill": "A",
+      "gameImpact": "C",
+      "socialTrust": "+",
+      "strengths": "Plays most roles fairly competently\nStays under the radar as evil\nDoes a little bit of worldbuilding\nSmart player as Demon",
+      "weaknesses": "Doesn't influence town\nCannot (yet) handle 'deduction showdown' or pivotal such game moments\nNeeds to pay more attention to votes"
+    },
+    {
+      "name": "Andreas",
+      "displayName": "Andreas",
+      "core": false,
+      "title": "",
+      "major": "",
+      "status": "",
+      "quote": "",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "+",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Anika",
+      "displayName": "Anika",
+      "core": true,
+      "title": "Dictator of Ravenswood Bluff",
+      "major": "Mathematics and Philosophy",
+      "status": "7 foot tall subjugator",
+      "quote": "actually wait im literally god",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "-",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Asher",
+      "displayName": "Asher",
+      "core": true,
+      "title": "",
+      "major": "Mathematics and Physics",
+      "status": "have you ever heard the tragedy of darth asher the evil mvp? it’s not a story the townsfolk would tell you.",
+      "quote": "They call me Steve Nojobs the way I’m unemployed.",
+      "photoPath": "",
+      "overallSkill": "B",
+      "goodSkill": "C",
+      "evilSkill": "B",
+      "gameImpact": "A",
+      "socialTrust": "-",
+      "strengths": "Very active player, willing to team up with players\nAttempts to worldbuild and build larger theories\nSome decent instincts",
+      "weaknesses": "Can miss small rule details\nCould do stronger/more rigorous deductions"
+    },
+    {
+      "name": "Filippos",
+      "displayName": "Filippos",
+      "core": true,
+      "title": "",
+      "major": "Applied Mathematics",
+      "status": "valentinesdaybaitingwithmyplatoniccompanion",
+      "quote": "I’m sorry to tell you that Wittgenstein says you’re not real.",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Hanlei",
+      "displayName": "Hanlei",
+      "core": false,
+      "title": "",
+      "major": "",
+      "status": "",
+      "quote": "",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "+",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Jasmine",
+      "displayName": "Jasmine",
+      "core": true,
+      "title": "",
+      "major": "Anthropology and Linguistics",
+      "status": "IIIIIIZAAAAAAYAAAAAA",
+      "quote": "Would you still love me if I was a bizcon major?",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Josh",
+      "displayName": "Josh",
+      "core": true,
+      "title": "",
+      "major": "Mathematics and Physics",
+      "status": "hatsune miku is hiding in your wifi",
+      "quote": "All my homies hate the Implicit Function Theorem.",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Kate",
+      "displayName": "Kate",
+      "core": true,
+      "title": "",
+      "major": "Mathematics and Creative Writing",
+      "status": "2 auspicious 2 furious",
+      "quote": "The trickle down economy is working its wonders.",
+      "photoPath": "",
+      "overallSkill": "B",
+      "goodSkill": "B",
+      "evilSkill": "C",
+      "gameImpact": "D",
+      "socialTrust": "",
+      "strengths": "Pretty good deductions and considers a wide net of possibilities\nDoesn't make many silly mistakes",
+      "weaknesses": "Doesn't participate until she's on the chopping block"
+    },
+    {
+      "name": "Marcus",
+      "displayName": "Marcus",
+      "core": false,
+      "title": "",
+      "major": "",
+      "status": "",
+      "quote": "",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "+",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Natalie",
+      "displayName": "Natalie",
+      "core": true,
+      "title": "",
+      "major": "Computer Science and Human Rights",
+      "status": "implementing containerization",
+      "quote": "They’re so mean to me because I’m stupid.",
+      "photoPath": "",
+      "overallSkill": "C",
+      "goodSkill": "C",
+      "evilSkill": "C",
+      "gameImpact": "S",
+      "socialTrust": "+",
+      "strengths": "Good influence/participation in town\nUnderstands the game fairly well\nTries to solve the game",
+      "weaknesses": "Needs to step up her deducing/piecing info together\nPay attention to voting"
+    },
+    {
+      "name": "Raj",
+      "displayName": "Raj",
+      "core": false,
+      "title": "",
+      "major": "",
+      "status": "",
+      "quote": "",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "+",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Rohan",
+      "displayName": "Rohan",
+      "core": true,
+      "title": "",
+      "major": "Mathematics",
+      "status": "i think we should trust rohan guys",
+      "quote": "Some people find lying very stressful. I don’t know why.",
+      "photoPath": "",
+      "overallSkill": "S",
+      "goodSkill": "S",
+      "evilSkill": "S",
+      "gameImpact": "S",
+      "socialTrust": "-",
+      "strengths": "Generally good at this game\nParticipates, world-builds, deduces\nSchemes well as evil\nCareful with voting",
+      "weaknesses": "Sell stronger narratives as evil\nCan consider more edge cases as good"
+    },
+    {
+      "name": "Ryan",
+      "displayName": "Ryan",
+      "core": true,
+      "title": "",
+      "major": "Economics and Philosophy",
+      "status": "plotting order 66 on the jedi’s wifi",
+      "quote": "I think free speech should be stifled.",
+      "photoPath": "",
+      "overallSkill": "A",
+      "goodSkill": "S",
+      "evilSkill": "A",
+      "gameImpact": "B",
+      "socialTrust": "+",
+      "strengths": "Good at building worlds, considering possibilities, examining all implications of info\nUses abilities efficiently\nWilling to share info\nGood at being careful with voting",
+      "weaknesses": "Doesn't scheme/spread misinformation as evil\nDoesn't always coordinate with evil team"
+    },
+    {
+      "name": "Vic",
+      "displayName": "Vic",
+      "core": true,
+      "title": "",
+      "major": "Psychology and Comparative Human Development",
+      "status": "it was the butler",
+      "quote": "It’s okay, it’s not a complex if you actually are superior.",
+      "photoPath": "",
+      "overallSkill": "A",
+      "goodSkill": "B",
+      "evilSkill": "A",
+      "gameImpact": "B",
+      "socialTrust": "",
+      "strengths": "Plays actively, executes plans\nInvolved in discussions around world-building\nGood at bluffing/reads well socially\nFollows evil plans with little communication/guidance",
+      "weaknesses": ""
+    },
+    {
+      "name": "Vincent",
+      "displayName": "Vincent",
+      "core": true,
+      "title": "",
+      "major": "Mathematics and Computer Science",
+      "status": "i have banana bread",
+      "quote": "so excited to take a class with peter may uwu",
+      "photoPath": "",
+      "overallSkill": "A",
+      "goodSkill": "A",
+      "evilSkill": "B",
+      "gameImpact": "B",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Will",
+      "displayName": "Will",
+      "core": true,
+      "title": "",
+      "major": "Mathematics and Statistics",
+      "status": "rip to succy :(",
+      "quote": "I’m already depressed…give me those ants.",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Ziad",
+      "displayName": "Ziad",
+      "core": true,
+      "title": "",
+      "major": "Mathematics and Computer Science",
+      "status": "yare yare",
+      "quote": "Instructions unclear; I have become medium rare",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "+",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Carina",
+      "displayName": "Carina",
+      "core": true,
+      "title": "",
+      "major": "Political Science",
+      "status": "all quiet on the frontal lobe",
+      "quote": "What if I told you I’m not actually Carina",
+      "photoPath": "",
+      "overallSkill": "B",
+      "goodSkill": "A",
+      "evilSkill": "B",
+      "gameImpact": "B",
+      "socialTrust": "",
+      "strengths": "Active and vocal participant\nGood at scheming and considering lots of possibilities\nCan use her info to solve",
+      "weaknesses": "Can miss small rule details\nNeeds a bit more flexibility on her schemes"
+    },
+    {
+      "name": "Wendell",
+      "displayName": "Wendell",
+      "core": true,
+      "title": "",
+      "major": "Chemistry",
+      "status": "sexy dead fish",
+      "quote": "I’ll charm the committee with cold hard cash and my refreshing aegyo.",
+      "photoPath": "",
+      "overallSkill": "C",
+      "goodSkill": "C",
+      "evilSkill": "B",
+      "gameImpact": "B",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Chris",
+      "displayName": "Chris",
+      "core": true,
+      "title": "",
+      "major": "Computational Biology",
+      "status": "baby Saja",
+      "quote": "Do they explain the yaoi",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    },
+    {
+      "name": "Pavlik",
+      "displayName": "Pavlik",
+      "core": true,
+      "title": "",
+      "major": "Mathematics (?)",
+      "status": "“make sure not to leave a paper trail” —guy in the paper trail",
+      "quote": "Currently I am in russian mafia camp.",
+      "photoPath": "",
+      "overallSkill": "",
+      "goodSkill": "",
+      "evilSkill": "",
+      "gameImpact": "",
+      "socialTrust": "",
+      "strengths": "",
+      "weaknesses": ""
+    }
+  ],
+  "gameAwards": {
+    "games-sheet-0": {
+      "mangoNectar": [
+        "Ren"
+      ],
+      "mushroomElixir": [
+        "Rohan"
+      ]
+    },
+    "games-sheet-2": {
+      "mangoNectar": [
+        "Alexandra"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-3": {
+      "mangoNectar": [
+        "Rohan"
+      ],
+      "mushroomElixir": [
+        "Filippos"
+      ]
+    },
+    "games-sheet-4": {
+      "mangoNectar": [],
+      "mushroomElixir": [
+        "Aden"
+      ]
+    },
+    "games-sheet-5": {
+      "mangoNectar": [],
+      "mushroomElixir": [
+        "Alexandra"
+      ]
+    },
+    "games-sheet-6": {
+      "mangoNectar": [],
+      "mushroomElixir": [
+        "Ryan"
+      ]
+    },
+    "games-sheet-7": {
+      "mangoNectar": [],
+      "mushroomElixir": [
+        "Raj"
+      ]
+    },
+    "games-sheet-8": {
+      "mangoNectar": [
+        "Ryan"
+      ],
+      "mushroomElixir": [
+        "Natalie"
+      ]
+    },
+    "games-sheet-9": {
+      "mangoNectar": [
+        "Rohan"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-11": {
+      "mangoNectar": [
+        "Alexandra"
+      ],
+      "mushroomElixir": [
+        "Ryan"
+      ]
+    },
+    "games-sheet-12": {
+      "mangoNectar": [
+        "Vincent"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-13": {
+      "mangoNectar": [
+        "Ryan"
+      ],
+      "mushroomElixir": [
+        "Josh",
+        "Natalie",
+        "Vic",
+        "Vincent"
+      ]
+    },
+    "games-sheet-14": {
+      "mangoNectar": [
+        "Carina"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-15": {
+      "mangoNectar": [
+        "Vic"
+      ],
+      "mushroomElixir": [
+        "Natalie"
+      ]
+    },
+    "games-sheet-16": {
+      "mangoNectar": [
+        "Rohan"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-17": {
+      "mangoNectar": [
+        "Spencer"
+      ],
+      "mushroomElixir": [
+        "Asher"
+      ]
+    },
+    "games-sheet-18": {
+      "mangoNectar": [
+        "Vic"
+      ],
+      "mushroomElixir": [
+        "Josh"
+      ]
+    },
+    "games-sheet-19": {
+      "mangoNectar": [
+        "Aden"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-20": {
+      "mangoNectar": [
+        "Rohan",
+        "Vic"
+      ],
+      "mushroomElixir": [
+        "Aden"
+      ]
+    },
+    "games-sheet-22": {
+      "mangoNectar": [
+        "Wendell"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-23": {
+      "mangoNectar": [],
+      "mushroomElixir": [
+        "Jasmine",
+        "Natalie",
+        "Vincent"
+      ]
+    },
+    "games-sheet-25": {
+      "mangoNectar": [],
+      "mushroomElixir": [
+        "Asher"
+      ]
+    },
+    "games-sheet-26": {
+      "mangoNectar": [
+        "Rohan"
+      ],
+      "mushroomElixir": []
+    },
+    "games-sheet-27": {
+      "mangoNectar": [
+        "Carina"
+      ],
+      "mushroomElixir": [
+        "Pavlik"
+      ]
+    },
+    "games-sheet-28": {
+      "mangoNectar": [
+        "Pavlik"
+      ],
+      "mushroomElixir": []
+    }
+  },
+  "events": [],
+  "photos": []
+}

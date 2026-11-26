@@ -1,1 +1,1 @@
-https://psipress.github.io/botc-website/
+https://thepsipress.github.io/botc-website/

@@ -1,306 +1,232 @@
 -- Blood on the Clocktower stats: Supabase database setup.
 --
--- Run this whole file once in the Supabase dashboard: SQL Editor -> New query
--- -> paste -> Run. It is safe to run again after pulling a newer version.
+-- Run this whole file in the Supabase dashboard: SQL Editor -> New query ->
+-- paste -> Run. It is safe to run again after pulling a newer version.
+-- Then run supabase/seed.sql the same way to load the club's existing data.
 --
--- Then set the storyteller passcode in a separate query (pick your own; do not
--- commit it, this repository is public):
+-- Security model: anyone can read everything (the site is public). Only
+-- editors can change anything. An editor is a Supabase Auth user listed in
+-- private.editors:
 --
---   select private.set_passcode('your passcode here');
+--   1. Authentication -> Users -> Add user (email + password, auto-confirm).
+--   2. SQL Editor: select private.add_editor('their@email.address');
 --
--- Security model: anyone can read games (the site is public). Nobody can write
--- to the table directly; every change goes through a function below that
--- checks the passcode against a bcrypt hash stored in the unexposed `private`
--- schema.
+-- Turn off public sign-ups too (Authentication -> Sign In / Providers ->
+-- "Allow new users to sign up"). Even with sign-ups on, a stranger's account
+-- could not edit, because it is not in private.editors.
 
-create extension if not exists pgcrypto with schema extensions;
-
--- ---------------------------------------------------------------- private
+-- ---------------------------------------------------------------- editors
 
 create schema if not exists private;
 revoke all on schema private from public;
 revoke all on schema private from anon, authenticated;
 
-create table if not exists private.settings (
-  key text primary key,
-  value text not null
+create table if not exists private.editors (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  added_at timestamptz not null default now()
 );
-revoke all on private.settings from public;
-revoke all on private.settings from anon, authenticated;
+revoke all on private.editors from public;
+revoke all on private.editors from anon, authenticated;
 
-create or replace function private.set_passcode(p_passcode text)
-returns void
+create or replace function private.add_editor(p_email text)
+returns text
 language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v_id uuid;
 begin
-  if length(coalesce(p_passcode, '')) < 4 then
-    raise exception 'Passcode must be at least 4 characters.';
+  select id into v_id from auth.users where lower(email) = lower(btrim(p_email));
+  if v_id is null then
+    raise exception 'No user with email %. Add it under Authentication -> Users first.', p_email;
   end if;
-  insert into private.settings (key, value)
-  values ('passcode_hash', extensions.crypt(p_passcode, extensions.gen_salt('bf', 10)))
-  on conflict (key) do update set value = excluded.value;
+  insert into private.editors (user_id) values (v_id) on conflict do nothing;
+  return 'Editor added: ' || p_email;
 end;
 $$;
 
-create or replace function private.passcode_ok(p_passcode text)
-returns boolean
+create or replace function private.remove_editor(p_email text)
+returns text
 language sql
-stable
 security definer
 set search_path = ''
 as $$
-  select exists (
-    select 1
-    from private.settings
-    where key = 'passcode_hash'
-      and value = extensions.crypt(coalesce(p_passcode, ''), value)
-  );
+  delete from private.editors where user_id in (select id from auth.users where lower(email) = lower(btrim(p_email)));
+  select 'Editor removed: ' || p_email;
 $$;
 
-create or replace function private.require_passcode(p_passcode text)
-returns void
+create or replace function private.touch_updated_at()
+returns trigger
 language plpgsql
-stable
-security definer
 set search_path = ''
 as $$
 begin
-  if not private.passcode_ok(p_passcode) then
-    -- PostgREST turns SQLSTATE PTxyz into HTTP status xyz.
-    raise sqlstate 'PT401' using message = 'Incorrect passcode.';
-  end if;
+  new.updated_at := now();
+  return new;
 end;
 $$;
 
 revoke all on all functions in schema private from public;
 revoke all on all functions in schema private from anon, authenticated;
 
--- ---------------------------------------------------------------- games
-
--- One row per game, same fields as the local SQLite `games` table. `seq` keeps
--- insertion order, which breaks ties between games on the same date.
-create table if not exists public.games (
-  seq bigint generated always as identity,
-  id text primary key,
-  source text not null default 'database',
-  date text not null,
-  outcome text not null,
-  final_day text not null default '',
-  storyteller text not null default '',
-  player_count integer not null default 0,
-  format text not null default '',
-  script text not null default '',
-  win_names jsonb not null default '[]'::jsonb,
-  loss_names jsonb not null default '[]'::jsonb,
-  roles jsonb not null default '{}'::jsonb,
-  alignment_overrides jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create index if not exists games_seq_idx on public.games (seq);
-
-alter table public.games enable row level security;
-drop policy if exists "Games are public" on public.games;
-create policy "Games are public" on public.games for select to anon, authenticated using (true);
-
-grant usage on schema public to anon, authenticated;
-revoke all on public.games from anon, authenticated;
-grant select on public.games to anon, authenticated;
-
--- Validates an app-shaped game object ({ date, outcome, finalDay, storyteller,
--- playerCount, format, script, winNames, lossNames, roles, alignmentOverrides })
--- and returns it as a games row. Mirrors normalizeGame() in server.mjs.
-create or replace function private.game_row(p_game jsonb, p_id text, p_source text, p_validate boolean)
-returns public.games
-language plpgsql
-immutable
-set search_path = ''
-as $$
-declare
-  r public.games;
-  v_count text := btrim(coalesce(p_game ->> 'playerCount', ''));
-begin
-  if jsonb_typeof(p_game) is distinct from 'object' then
-    raise sqlstate 'PT400' using message = 'Invalid game payload.';
-  end if;
-
-  r.id := p_id;
-  r.source := p_source;
-  r.date := btrim(coalesce(p_game ->> 'date', ''));
-  r.outcome := btrim(coalesce(p_game ->> 'outcome', ''));
-  r.final_day := btrim(coalesce(p_game ->> 'finalDay', ''));
-  r.storyteller := btrim(coalesce(p_game ->> 'storyteller', ''));
-  r.format := btrim(coalesce(p_game ->> 'format', ''));
-  r.script := btrim(coalesce(p_game ->> 'script', ''));
-  r.roles := case when jsonb_typeof(p_game -> 'roles') = 'object' then p_game -> 'roles' else '{}'::jsonb end;
-  r.alignment_overrides := case
-    when jsonb_typeof(p_game -> 'alignmentOverrides') = 'object' then p_game -> 'alignmentOverrides'
-    else '{}'::jsonb
-  end;
-  r.win_names := coalesce((
-    select jsonb_agg(btrim(name) order by position)
-    from jsonb_array_elements_text(
-      case when jsonb_typeof(p_game -> 'winNames') = 'array' then p_game -> 'winNames' else '[]'::jsonb end
-    ) with ordinality as names(name, position)
-    where btrim(name) <> ''
-  ), '[]'::jsonb);
-  r.loss_names := coalesce((
-    select jsonb_agg(btrim(name) order by position)
-    from jsonb_array_elements_text(
-      case when jsonb_typeof(p_game -> 'lossNames') = 'array' then p_game -> 'lossNames' else '[]'::jsonb end
-    ) with ordinality as names(name, position)
-    where btrim(name) <> ''
-  ), '[]'::jsonb);
-  r.player_count := case
-    when v_count ~ '^-?[0-9]+(\.[0-9]+)?$' then round(v_count::numeric)::integer
-    else (select count(*) from jsonb_object_keys(r.roles))::integer
-  end;
-
-  if p_validate and (r.date = '' or r.outcome not in ('Good', 'Evil')) then
-    raise sqlstate 'PT400' using message = 'A date and a Good or Evil outcome are required.';
-  end if;
-  return r;
-end;
-$$;
-revoke all on function private.game_row(jsonb, text, text, boolean) from public, anon, authenticated;
-
--- ---------------------------------------------------------------- API (called by the site)
-
-create or replace function public.check_passcode(p_passcode text)
+-- True when the signed-in user is an editor. The site calls it to decide
+-- whether to show editing controls; the policies below use it to allow writes.
+create or replace function public.is_editor()
 returns boolean
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select private.passcode_ok(p_passcode);
+  select exists (select 1 from private.editors where user_id = (select auth.uid()));
 $$;
+revoke all on function public.is_editor() from public;
+grant execute on function public.is_editor() to anon, authenticated;
 
-create or replace function public.add_game(p_passcode text, p_game jsonb)
-returns public.games
+-- ---------------------------------------------------------------- tables
+
+-- One row per game. `seq` keeps insertion order, which breaks ties between
+-- games on the same date. `date` uses the sheet's m/d/yy text format.
+create table if not exists public.games (
+  seq bigint generated always as identity,
+  id text primary key default ('game-' || gen_random_uuid()::text),
+  source text not null default 'database',
+  date text not null check (btrim(date) <> ''),
+  outcome text not null check (outcome in ('Good', 'Evil')),
+  final_day text not null default '',
+  storyteller text not null default '',
+  player_count integer not null default 0,
+  format text not null default '',
+  script text not null default '',
+  win_names jsonb not null default '[]'::jsonb check (jsonb_typeof(win_names) = 'array'),
+  loss_names jsonb not null default '[]'::jsonb check (jsonb_typeof(loss_names) = 'array'),
+  roles jsonb not null default '{}'::jsonb check (jsonb_typeof(roles) = 'object'),
+  alignment_overrides jsonb not null default '{}'::jsonb check (jsonb_typeof(alignment_overrides) = 'object'),
+  mango_nectar jsonb not null default '[]'::jsonb check (jsonb_typeof(mango_nectar) = 'array'),
+  mushroom_elixir jsonb not null default '[]'::jsonb check (jsonb_typeof(mushroom_elixir) = 'array'),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists games_seq_idx on public.games (seq);
+
+-- One row per person. `name` is the name used in games (the Games Sheet
+-- column header) and never changes; `display_name` is what profiles show.
+-- `slot` is the spreadsheet column order, which the rating model uses.
+create table if not exists public.players (
+  name text primary key check (btrim(name) <> ''),
+  slot integer,
+  display_name text not null default '',
+  core boolean not null default false,
+  title text not null default '',
+  major text not null default '',
+  status text not null default '',
+  quote text not null default '',
+  photo_path text not null default '',
+  overall_skill text not null default '',
+  good_skill text not null default '',
+  evil_skill text not null default '',
+  game_impact text not null default '',
+  social_trust text not null default '',
+  strengths text not null default '',
+  weaknesses text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists players_name_key on public.players (lower(replace(name, ' ', '')));
+
+-- New players without a slot go after the last column, like adding a column.
+create or replace function private.players_next_slot()
+returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
+begin
+  if new.slot is null then
+    select coalesce(max(slot), -1) + 1 into new.slot from public.players;
+  end if;
+  return new;
+end;
+$$;
+revoke all on function private.players_next_slot() from public, anon, authenticated;
+
+drop trigger if exists players_next_slot on public.players;
+create trigger players_next_slot before insert on public.players
+  for each row execute function private.players_next_slot();
+
+create table if not exists public.events (
+  id uuid primary key default gen_random_uuid(),
+  title text not null check (btrim(title) <> ''),
+  starts_at timestamptz not null,
+  location text not null default '',
+  format text not null default '',
+  script text not null default '',
+  storyteller text not null default '',
+  notes text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.photos (
+  id uuid primary key default gen_random_uuid(),
+  path text not null unique,
+  caption text not null default '',
+  taken_on date,
+  width integer,
+  height integer,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Everyone reads, editors write.
+do $$
 declare
-  r public.games;
+  t text;
 begin
-  perform private.require_passcode(p_passcode);
-  r := private.game_row(p_game, 'game-' || gen_random_uuid()::text, 'database', true);
-  insert into public.games (
-    id, source, date, outcome, final_day, storyteller, player_count, format, script,
-    win_names, loss_names, roles, alignment_overrides
-  ) values (
-    r.id, r.source, r.date, r.outcome, r.final_day, r.storyteller, r.player_count, r.format, r.script,
-    r.win_names, r.loss_names, r.roles, r.alignment_overrides
-  )
-  returning * into r;
-  return r;
+  foreach t in array array['games', 'players', 'events', 'photos'] loop
+    execute format('alter table public.%I enable row level security', t);
+    execute format('drop policy if exists "Public read" on public.%I', t);
+    execute format('drop policy if exists "Editors insert" on public.%I', t);
+    execute format('drop policy if exists "Editors update" on public.%I', t);
+    execute format('drop policy if exists "Editors delete" on public.%I', t);
+    execute format('create policy "Public read" on public.%I for select to anon, authenticated using (true)', t);
+    execute format('create policy "Editors insert" on public.%I for insert to authenticated with check ((select public.is_editor()))', t);
+    execute format('create policy "Editors update" on public.%I for update to authenticated using ((select public.is_editor())) with check ((select public.is_editor()))', t);
+    execute format('create policy "Editors delete" on public.%I for delete to authenticated using ((select public.is_editor()))', t);
+    execute format('revoke all on public.%I from anon, authenticated', t);
+    execute format('grant select on public.%I to anon, authenticated', t);
+    execute format('grant insert, update, delete on public.%I to authenticated', t);
+    execute format('drop trigger if exists touch_updated_at on public.%I', t);
+    execute format('create trigger touch_updated_at before update on public.%I for each row execute function private.touch_updated_at()', t);
+  end loop;
 end;
 $$;
+grant usage on schema public to anon, authenticated;
 
-create or replace function public.update_game(p_passcode text, p_id text, p_game jsonb)
-returns public.games
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  r public.games;
-begin
-  perform private.require_passcode(p_passcode);
-  r := private.game_row(p_game, p_id, 'database', true);
-  update public.games set
-    date = r.date,
-    outcome = r.outcome,
-    final_day = r.final_day,
-    storyteller = r.storyteller,
-    player_count = r.player_count,
-    format = r.format,
-    script = r.script,
-    win_names = r.win_names,
-    loss_names = r.loss_names,
-    roles = r.roles,
-    alignment_overrides = r.alignment_overrides,
-    updated_at = now()
-  where id = p_id
-  returning * into r;
-  if not found then
-    raise sqlstate 'PT404' using message = 'Game not found.';
-  end if;
-  return r;
-end;
-$$;
+-- ---------------------------------------------------------------- photo storage
 
-create or replace function public.delete_game(p_passcode text, p_id text)
-returns boolean
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  perform private.require_passcode(p_passcode);
-  delete from public.games where id = p_id;
-  if not found then
-    raise sqlstate 'PT404' using message = 'Game not found.';
-  end if;
-  return true;
-end;
-$$;
+-- Public bucket: anyone can view files by URL; only editors can upload,
+-- replace or delete. Holds gallery photos (gallery/...) and profile pictures
+-- (players/...). The site shrinks images before upload.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('media', 'media', true, 10485760, array['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
--- Replaces the Games Sheet rows (source 'games-sheet') with the CSV's games
--- when the CSV changed. Games entered on the site are kept. Called by
--- sync-supabase.mjs (the Pages workflow runs it on every push to main).
-create or replace function public.sync_games_sheet(p_passcode text, p_hash text, p_games jsonb)
-returns jsonb
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_previous text;
-  v_count integer;
-begin
-  perform private.require_passcode(p_passcode);
-  if coalesce(p_hash, '') = '' or jsonb_typeof(p_games) is distinct from 'array' then
-    raise sqlstate 'PT400' using message = 'A hash and a games array are required.';
-  end if;
-
-  select value into v_previous from private.settings where key = 'games_sheet_hash';
-  if v_previous = p_hash then
-    return jsonb_build_object(
-      'status', 'unchanged',
-      'games', (select count(*) from public.games where source = 'games-sheet')
-    );
-  end if;
-
-  delete from public.games where source = 'games-sheet';
-  insert into public.games (
-    id, source, date, outcome, final_day, storyteller, player_count, format, script,
-    win_names, loss_names, roles, alignment_overrides
-  )
-  select r.id, r.source, r.date, r.outcome, r.final_day, r.storyteller, r.player_count, r.format, r.script,
-    r.win_names, r.loss_names, r.roles, r.alignment_overrides
-  from jsonb_array_elements(p_games) with ordinality as sheet(game, position)
-  cross join lateral private.game_row(sheet.game, sheet.game ->> 'id', 'games-sheet', false) as r
-  order by sheet.position;
-  get diagnostics v_count = row_count;
-
-  insert into private.settings (key, value) values ('games_sheet_hash', p_hash)
-  on conflict (key) do update set value = excluded.value;
-  return jsonb_build_object('status', 'synced', 'games', v_count);
-end;
-$$;
-
-revoke all on function public.check_passcode(text) from public;
-revoke all on function public.add_game(text, jsonb) from public;
-revoke all on function public.update_game(text, text, jsonb) from public;
-revoke all on function public.delete_game(text, text) from public;
-revoke all on function public.sync_games_sheet(text, text, jsonb) from public;
-grant execute on function public.check_passcode(text) to anon, authenticated;
-grant execute on function public.add_game(text, jsonb) to anon, authenticated;
-grant execute on function public.update_game(text, text, jsonb) to anon, authenticated;
-grant execute on function public.delete_game(text, text) to anon, authenticated;
-grant execute on function public.sync_games_sheet(text, text, jsonb) to anon, authenticated;
+drop policy if exists "Editors read media" on storage.objects;
+drop policy if exists "Editors upload media" on storage.objects;
+drop policy if exists "Editors update media" on storage.objects;
+drop policy if exists "Editors delete media" on storage.objects;
+-- Storage needs read access to delete or replace a file.
+create policy "Editors read media" on storage.objects for select to authenticated
+  using (bucket_id = 'media' and (select public.is_editor()));
+create policy "Editors upload media" on storage.objects for insert to authenticated
+  with check (bucket_id = 'media' and (select public.is_editor()));
+create policy "Editors update media" on storage.objects for update to authenticated
+  using (bucket_id = 'media' and (select public.is_editor()))
+  with check (bucket_id = 'media' and (select public.is_editor()));
+create policy "Editors delete media" on storage.objects for delete to authenticated
+  using (bucket_id = 'media' and (select public.is_editor()));

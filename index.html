@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Figtree:wght@400;500;600;700&display=swap">
-    <link rel="stylesheet" href="styles.css?v=20261122">
+    <link rel="stylesheet" href="styles.css?v=20261126">
   </head>
   <body>
     <svg class="sky-layer" id="skyLayer" aria-hidden="true" preserveAspectRatio="xMidYMid slice"></svg>
@@ -32,8 +32,11 @@
         <a class="nav-link" href="#rankings" data-nav="rankings">Rankings</a>
         <a class="nav-link" href="#tiers" data-nav="tiers">Tier Lists</a>
         <a class="nav-link" href="#players" data-nav="players">Players</a>
+        <a class="nav-link" href="#awards" data-nav="awards">Awards</a>
         <a class="nav-link" href="#games" data-nav="games">Games</a>
         <a class="nav-link" href="#stats" data-nav="stats">Statistics</a>
+        <a class="nav-link" href="#events" data-nav="events">Upcoming</a>
+        <a class="nav-link" href="#gallery" data-nav="gallery">Gallery</a>
         <a class="nav-link" href="#about" data-nav="about">About</a>
       </nav>
     </header>
@@ -215,6 +218,27 @@
         <div class="page-head">
           <h2 id="tiersTitle">Tier lists</h2>
         </div>
+        <section class="panel tier-section" aria-labelledby="playerTiersTitle">
+          <div class="section-head">
+            <div><h3 id="playerTiersTitle">Players</h3><p class="section-copy">Storyteller grades.</p></div>
+            <div class="toolbar">
+              <div class="segmented" role="group" aria-label="Category" id="tierCategory">
+                <button type="button" class="is-active" data-action="tier-category" data-category="overallSkill">Overall</button>
+                <button type="button" data-action="tier-category" data-category="goodSkill">Good</button>
+                <button type="button" data-action="tier-category" data-category="evilSkill">Evil</button>
+                <button type="button" data-action="tier-category" data-category="gameImpact">Game impact</button>
+              </div>
+              <button class="button button-ghost editor-only" type="button" data-action="edit-grades">Edit grades</button>
+            </div>
+          </div>
+          <div id="playerTiers"></div>
+          <div class="table-shell grade-table-shell">
+            <table class="data-table compact grade-table">
+              <thead><tr><th>Player</th><th>Overall</th><th>Good</th><th>Evil</th><th>Game impact</th><th>Social trust</th></tr></thead>
+              <tbody id="gradeTableBody"></tbody>
+            </table>
+          </div>
+        </section>
         <section class="panel tier-section" aria-labelledby="rookieTitle">
           <div class="section-head"><div><h3 id="rookieTitle">Rookies</h3><p class="section-copy">The five newest players, tiered by Elo percentile.</p></div></div>
           <div id="rookieTiers"></div>
@@ -247,9 +271,40 @@
                 <option value="name">Name</option>
               </select>
             </label>
+            <button class="button button-ghost editor-only" type="button" data-action="add-player">Add player</button>
           </div>
         </div>
-        <div id="rosterGrid" class="roster-grid"></div>
+        <div id="coreGrid" class="profile-grid"></div>
+        <h3 class="subhead" id="othersHead">Everyone else</h3>
+        <div id="othersGrid" class="chip-cloud others-grid"></div>
+      </section>
+
+      <!-- AWARDS -->
+      <section class="view" data-view="awards" aria-labelledby="awardsTitle">
+        <div class="page-head">
+          <h2 id="awardsTitle">Awards</h2>
+        </div>
+        <div class="boards">
+          <section class="panel award-panel award-nectar" aria-labelledby="nectarTitle">
+            <h3 id="nectarTitle"><span class="award-icon" data-award-icon="nectar"></span>Mango Nectar</h3>
+            <p class="section-copy">MVP.</p>
+            <ol id="nectarBoard" class="award-board"></ol>
+          </section>
+          <section class="panel award-panel award-elixir" aria-labelledby="elixirTitle">
+            <h3 id="elixirTitle"><span class="award-icon" data-award-icon="elixir"></span>Mushroom Elixir</h3>
+            <p class="section-copy">Most responsible for their team losing.</p>
+            <ol id="elixirBoard" class="award-board"></ol>
+          </section>
+        </div>
+        <section class="panel" aria-labelledby="awardHistoryTitle">
+          <div class="section-head"><div><h3 id="awardHistoryTitle">By game</h3></div></div>
+          <div class="table-shell">
+            <table class="data-table awards-table">
+              <thead><tr><th>#</th><th>Date</th><th>Script</th><th>Mango Nectar</th><th>Mushroom Elixir</th></tr></thead>
+              <tbody id="awardsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
       <!-- GAMES -->
@@ -321,6 +376,34 @@
         </section>
       </section>
 
+      <!-- UPCOMING -->
+      <section class="view" data-view="events" aria-labelledby="eventsTitle">
+        <div class="page-head page-head-row">
+          <div>
+            <h2 id="eventsTitle">Upcoming</h2>
+          </div>
+          <div class="toolbar">
+            <button class="button button-gold editor-only" type="button" data-action="add-event">Add event</button>
+          </div>
+        </div>
+        <div id="eventsList" class="event-list"></div>
+        <section id="pastEvents" class="past-events" hidden></section>
+      </section>
+
+      <!-- GALLERY -->
+      <section class="view" data-view="gallery" aria-labelledby="galleryTitle">
+        <div class="page-head page-head-row">
+          <div>
+            <h2 id="galleryTitle">Gallery</h2>
+          </div>
+          <div class="toolbar">
+            <button class="button button-gold editor-only" type="button" data-action="upload-photos">Upload photos</button>
+            <input id="photoFileInput" type="file" accept="image/*" multiple hidden>
+          </div>
+        </div>
+        <div id="galleryGrid" class="gallery-grid"></div>
+      </section>
+
       <!-- ABOUT -->
       <section class="view" data-view="about" aria-labelledby="aboutTitle">
         <div class="page-head">
@@ -383,6 +466,7 @@ Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
     <footer class="site-footer">
       <p><span class="footer-mark">Ψ</span> Psi Press · Blood on the Clocktower · <span id="footerUpdated"></span></p>
       <p class="footer-small">Blood on the Clocktower is a game by The Pandemonium Institute. This is an unofficial fan stats site.</p>
+      <p class="editor-bar" id="editorBar" hidden>Signed in as <span id="editorEmail"></span> · <button type="button" class="link-button" id="signOutButton">Sign out</button></p>
     </footer>
 
     <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
@@ -426,7 +510,6 @@ Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
           <button class="icon-button" value="cancel" aria-label="Close" type="submit">×</button>
         </div>
         <p id="deleteGameSummary" class="section-copy"></p>
-        <label class="field field-block">Passcode<input id="deletePasscodeInput" type="password" autocomplete="current-password"></label>
         <div class="dialog-actions">
           <span id="deleteMessage" class="entry-message" role="status"></span>
           <button class="button button-ghost" value="cancel" type="submit">Cancel</button>
@@ -435,19 +518,152 @@ Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
       </form>
     </dialog>
 
-    <dialog id="passcodeDialog" class="dialog dialog-small">
-      <form id="passcodeForm" method="dialog" class="dialog-body">
+    <dialog id="signInDialog" class="dialog dialog-small">
+      <form id="signInForm" class="dialog-body">
         <div class="dialog-heading">
-          <div><p class="eyebrow">Storyteller</p><h2>Passcode</h2></div>
-          <button class="icon-button" value="cancel" aria-label="Close" type="submit">×</button>
+          <div><p class="eyebrow">Storyteller</p><h2>Sign in</h2></div>
+          <button class="icon-button" data-action="close-dialog" aria-label="Close" type="button">×</button>
         </div>
-        <label class="field field-block">Passcode<input id="passcodeInput" type="password" autocomplete="current-password"></label>
+        <label class="field field-block">Email<input id="signInEmail" type="email" autocomplete="username" required></label>
+        <label class="field field-block">Password<input id="signInPassword" type="password" autocomplete="current-password" required></label>
         <div class="dialog-actions">
-          <span id="passcodeMessage" class="entry-message" role="status"></span>
-          <button class="button button-ghost" value="cancel" type="submit">Cancel</button>
-          <button id="passcodeSubmit" class="button button-gold" type="button">Unlock</button>
+          <span id="signInMessage" class="entry-message" role="status"></span>
+          <button class="button button-ghost" data-action="close-dialog" type="button">Cancel</button>
+          <button id="signInSubmit" class="button button-gold" type="submit">Sign in</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="profileDialog" class="dialog dialog-large">
+      <form id="profileForm" class="dialog-body">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">Player</p><h2 id="profileDialogTitle">Edit profile</h2></div>
+          <button class="icon-button" data-action="close-dialog" aria-label="Close" type="button">×</button>
+        </div>
+        <div class="profile-editor">
+          <div class="photo-field">
+            <div id="profilePhotoPreview" class="photo-preview"></div>
+            <label class="button button-ghost file-button">Choose photo<input id="profilePhotoInput" type="file" accept="image/*" hidden></label>
+            <label class="check"><input id="profilePhotoRemove" type="checkbox"> Remove photo</label>
+          </div>
+          <div class="form-grid form-grid-2">
+            <label class="field field-block">Name in games<input id="profileName" type="text" autocomplete="off" required></label>
+            <label class="field field-block">Display name<input id="profileDisplayName" type="text" autocomplete="off" placeholder="First name + last initial"></label>
+            <label class="field field-block">Title<input id="profileTitle" type="text" autocomplete="off"></label>
+            <label class="field field-block">Major<input id="profileMajor" type="text" autocomplete="off"></label>
+            <label class="field field-block field-wide">Status<input id="profileStatus" type="text" autocomplete="off"></label>
+            <label class="field field-block field-wide">Quote<input id="profileQuote" type="text" autocomplete="off"></label>
+            <label class="check field-wide"><input id="profileCore" type="checkbox"> Core player</label>
+          </div>
+        </div>
+        <h3 class="form-subhead">Tier list</h3>
+        <div class="form-grid grade-grid">
+          <label class="field field-block">Overall<select id="profileOverallSkill" data-grade-options></select></label>
+          <label class="field field-block">Good<select id="profileGoodSkill" data-grade-options></select></label>
+          <label class="field field-block">Evil<select id="profileEvilSkill" data-grade-options></select></label>
+          <label class="field field-block">Game impact<select id="profileGameImpact" data-grade-options></select></label>
+          <label class="field field-block">Social trust<select id="profileSocialTrust" data-trust-options></select></label>
+        </div>
+        <div class="form-grid form-grid-2">
+          <label class="field field-block">Strengths<textarea id="profileStrengths" rows="4" placeholder="One per line"></textarea></label>
+          <label class="field field-block">Weaknesses<textarea id="profileWeaknesses" rows="4" placeholder="One per line"></textarea></label>
+        </div>
+        <div class="dialog-actions">
+          <span id="profileMessage" class="entry-message" role="status"></span>
+          <button class="button button-ghost" data-action="close-dialog" type="button">Cancel</button>
+          <button id="profileSave" class="button button-gold" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="gradesDialog" class="dialog dialog-large">
+      <form id="gradesForm" class="dialog-body">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">Tier list</p><h2>Edit grades</h2></div>
+          <button class="icon-button" data-action="close-dialog" aria-label="Close" type="button">×</button>
+        </div>
+        <div class="table-shell">
+          <table class="data-table compact grade-editor">
+            <thead><tr><th>Player</th><th>Overall</th><th>Good</th><th>Evil</th><th>Game impact</th><th>Social trust</th></tr></thead>
+            <tbody id="gradesBody"></tbody>
+          </table>
+        </div>
+        <label class="field">Add player<select id="gradesAdd"></select></label>
+        <div class="dialog-actions">
+          <span id="gradesMessage" class="entry-message" role="status"></span>
+          <button class="button button-ghost" data-action="close-dialog" type="button">Cancel</button>
+          <button id="gradesSave" class="button button-gold" type="submit">Save grades</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="eventDialog" class="dialog dialog-medium">
+      <form id="eventForm" class="dialog-body">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">Upcoming</p><h2 id="eventDialogTitle">New event</h2></div>
+          <button class="icon-button" data-action="close-dialog" aria-label="Close" type="button">×</button>
+        </div>
+        <div class="form-grid form-grid-2">
+          <label class="field field-block">Title<input id="eventTitle" type="text" autocomplete="off" required></label>
+          <label class="field field-block">Date and time<input id="eventStartsAt" type="datetime-local" required></label>
+          <label class="field field-block">Location<input id="eventLocation" type="text" autocomplete="off"></label>
+          <label class="field field-block">Format
+            <select id="eventFormat">
+              <option value=""></option>
+              <option>In-Person</option>
+              <option>Online</option>
+            </select>
+          </label>
+          <label class="field field-block">Script<input id="eventScript" type="text" list="scriptOptions" autocomplete="off"></label>
+          <label class="field field-block">Storyteller<input id="eventStoryteller" type="text" list="playerOptions" autocomplete="off"></label>
+          <label class="field field-block field-wide">Notes<textarea id="eventNotes" rows="3"></textarea></label>
+        </div>
+        <div class="dialog-actions">
+          <button id="eventDelete" class="button button-danger-ghost" data-action="delete-event" type="button">Delete</button>
+          <span id="eventMessage" class="entry-message" role="status"></span>
+          <button class="button button-ghost" data-action="close-dialog" type="button">Cancel</button>
+          <button id="eventSave" class="button button-gold" type="submit">Save event</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="uploadDialog" class="dialog dialog-large">
+      <form id="uploadForm" class="dialog-body">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">Gallery</p><h2>Upload photos</h2></div>
+          <button class="icon-button" data-action="close-dialog" aria-label="Close" type="button">×</button>
+        </div>
+        <label class="field">Date taken<input id="uploadDate" type="date"></label>
+        <div id="uploadList" class="upload-list"></div>
+        <p class="section-copy">Resized to 2000 px; location data removed.</p>
+        <div class="dialog-actions">
+          <span id="uploadMessage" class="entry-message" role="status"></span>
+          <button class="button button-ghost" data-action="close-dialog" type="button">Cancel</button>
+          <button id="uploadSave" class="button button-gold" type="submit">Upload</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="photoDialog" class="dialog dialog-photo">
+      <div class="dialog-body">
+        <div class="photo-stage">
+          <img id="photoImage" alt="">
+          <button id="photoPrev" class="icon-button photo-nav photo-prev" data-action="photo-prev" aria-label="Previous photo" type="button">‹</button>
+          <button id="photoNext" class="icon-button photo-nav photo-next" data-action="photo-next" aria-label="Next photo" type="button">›</button>
+          <button id="photoDialogClose" class="icon-button photo-close" aria-label="Close" type="button">×</button>
+        </div>
+        <div class="photo-info">
+          <p id="photoCaption" class="photo-caption"></p>
+          <p id="photoMeta" class="section-copy"></p>
+        </div>
+        <form id="photoEditForm" class="photo-edit editor-only">
+          <label class="field">Caption<input id="photoCaptionInput" type="text" autocomplete="off"></label>
+          <label class="field">Date<input id="photoDateInput" type="date"></label>
+          <button class="button button-ghost" type="submit">Save</button>
+          <button class="button button-danger-ghost" data-action="delete-photo" type="button">Delete</button>
+          <span id="photoMessage" class="entry-message" role="status"></span>
+        </form>
+      </div>
     </dialog>
 
     <dialog id="entryDialog" class="dialog dialog-large">
@@ -525,10 +741,14 @@ Evil player:  −K × wE × (S − P)      wE = N / (2 × #Evil)</pre>
             <option value="Loss">Loss</option>
           </select>
         </label>
+        <div class="award-toggles" role="group" aria-label="Awards">
+          <label class="award-toggle award-nectar" title="Mango Nectar (MVP)"><input type="checkbox" data-field="nectar"><span>Nectar</span></label>
+          <label class="award-toggle award-elixir" title="Mushroom Elixir"><input type="checkbox" data-field="elixir"><span>Elixir</span></label>
+        </div>
         <button class="icon-button remove-participant" type="button" aria-label="Remove player">×</button>
       </div>
     </template>
 
-    <script type="module" src="app.js?v=20261122"></script>
+    <script type="module" src="app.js?v=20261126"></script>
   </body>
 </html>
